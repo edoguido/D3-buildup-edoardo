@@ -76,21 +76,21 @@ function renderApp() {
         track_name: d.track_name,
         artist_name: d.artist_name,
         genre: d.genre,
-        bpm: Number(d.bpm),
-        energy: Number(d.energy),
-        danceability: Number(d.danceability),
+        yCoord: Number(d.bpm),
+        // energy: Number(d.energy),
+        // danceability: Number(d.danceability),
         loudness: Number(d.loudness),
-        liveness: Number(d.liveness),
-        valence: Number(d.valence),
+        // liveness: Number(d.liveness),
+        // valence: Number(d.valence),
         length: Number(d.length),
-        acousticness: Number(d.acousticness),
-        speechiness: Number(d.speechiness),
-        popularity: Number(d.popularity),
+        // acousticness: Number(d.acousticness),
+        // speechiness: Number(d.speechiness),
+        // popularity: Number(d.popularity),
       }
     })
   }).then(dataset => {
     x.domain([0, 50])
-    y.domain([0, d3.max(dataset, d => d.bpm)])
+    y.domain([0, d3.max(dataset, d => d.yCoord)])
     r.domain([d3.min(dataset, d => d.loudness), 0])
 
     const datapoints = chartArea
@@ -98,7 +98,7 @@ function renderApp() {
       .data(dataset)
       .join('g')
       .attr('class', 'datapoint')
-      .attr('transform', (d, i) => `translate(${x(i)}, ${y(d.bpm)})`)
+      .attr('transform', (d, i) => `translate(${x(i)}, ${y(d.yCoord)})`)
 
     // append circles to every single group
     datapoints
@@ -115,7 +115,7 @@ function renderApp() {
       .attr('stroke', 'black')
       .attr('opacity', 0.25)
       .attr('x1', 0)
-      .attr('y1', (d, i) => height - y(d.bpm))
+      .attr('y1', (d, i) => height - y(d.yCoord))
       .attr('x2', 0)
       .attr('y2', 5)
 
