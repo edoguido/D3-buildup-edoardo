@@ -5,18 +5,12 @@ import '@accurat/tachyons-lite'
 import 'tachyons-extra'
 import './reset.css'
 import './style.css'
-
 import * as d3 from 'd3'
 import { times } from 'lodash'
-
 import { App } from './components/App'
+import { circle, spiral } from '../src/lib/curveEquations'
 
 function renderApp() {
-  const d3ChartTitle = (document.createElement('H1').innerHTML = 'Spiral chart with pure D3')
-  const chartElement = document.getElementById('chart')
-  // chartElement.appendChild(d3ChartTitle)
-  // chartElement.appendChild(makeSpirals)
-
   makeSpirals()
 
   ReactDOM.render(<App />, document.getElementById('root'))
@@ -145,46 +139,41 @@ function makeSpirals() {
         .attr('x2', 0)
         .attr('y2', internalRadius)
 
-      function circle(r, a) {
-        return {
-          x: r * Math.sin(a),
-          y: r * -Math.cos(a),
-        }
-      }
+      datapoints.each((datum, i, svgArray) => {
+        times(datum.spiralNumberOfLines).forEach(j => {
+          const angle = ((2 * Math.PI) / maxLengthValue) * j
+          const opacityModulus = (constant, modulus) => constant + ((angle + Math.PI) % modulus)
+          const numberOfLinesScale = d3
+            .scaleLinear()
+            .range([0, Math.PI * 2])
+            .domain([0, maxLengthValue])
 
-      function spiral(rStart, a, factor) {
-        return {
-          x: (rStart + a * factor) * Math.sin(a),
-          y: (rStart + a * factor) * -Math.cos(a),
-        }
-      }
-
-      times(maxLengthValue).forEach(i => {
-        const angle = ((2 * Math.PI) / maxLengthValue) * i
-        const opacityModulus = (constant, modulus) => constant + ((angle + Math.PI) % modulus)
-
-        const circlePoints = circle(internalRadius, angle)
-        const spiralPoints = spiral(
-          internalRadius + startingSpiralRadius,
-          angle,
-          spiralGrowingFactor
-        )
-
-        datapoints
-          .append('line')
-          .attr('opacity', 0)
-          .attr('stroke', d => colorScheme(d.spiralColor))
-          .attr('x1', circlePoints.x)
-          .attr('y1', circlePoints.y)
-          .attr('x2', spiralPoints.x)
-          .attr('y2', spiralPoints.y)
-          .attr('opacity', d =>
-            angle < 2 * Math.PI * (d.spiralNumberOfLines / maxLengthValue)
-              ? opacityModulus(0.1, Math.PI / 5)
-              : 0
+          const circlePoints = circle(internalRadius, angle)
+          const spiralPoints = spiral(
+            internalRadius + startingSpiralRadius,
+            angle,
+            spiralGrowingFactor
           )
+
+          d3.select(svgArray[i])
+            .append('line')
+            .attr('opacity', 0)
+            .attr('stroke', d => colorScheme(d.spiralColor))
+            .attr('x1', circlePoints.x)
+            .attr('y1', circlePoints.y)
+            .attr('x2', spiralPoints.x)
+            .attr('y2', spiralPoints.y)
+            .attr('opacity', d =>
+              angle < numberOfLinesScale(d.spiralNumberOfLines)
+                ? opacityModulus(0.1, Math.PI / 5)
+                : 0
+            )
+        })
       })
 
-      return svgContainer.node()
+      const d3ChartTitle = document.createElement('H1')
+      d3ChartTitle.innerHTML = 'Spiral chart with pure D3'
+
+      document.getElementById('chart').appendChild(svgContainer.node())
     })
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import * as d3 from 'd3'
 import { times } from 'lodash-es'
-import { circle, spiral } from '../lib/CurveEquations'
+import { circle, spiral } from '../lib/curveEquations'
 import _dataset from '../data/top50.json'
 
 export default function SpiralMultiples(props) {
