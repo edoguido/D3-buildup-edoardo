@@ -11,7 +11,6 @@ export class App extends React.Component {
           <a
             href="https://www.kaggle.com/leonardopena/top50spotify2019"
             target="_blank"
-            without
             rel="noopener noreferrer"
           >
             Top 50 Spotify Songs - 2019

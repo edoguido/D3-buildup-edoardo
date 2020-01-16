@@ -17,10 +17,3 @@ export function spiral(rStart, a, factor) {
     y: (rStart + a * factor) * -Math.cos(a),
   }
 }
-
-export function twistedSpiral(rStart, a, factor, index) {
-  return {
-    x: spiral(rStart, a, factor).x / 2 - Math.cos(a) * (4 + index / 12),
-    y: spiral(rStart, a, factor).y / 2 - Math.sin(a) * (4 + index / 12),
-  }
-}

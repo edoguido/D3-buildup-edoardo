@@ -8,7 +8,7 @@ import './style.css'
 import * as d3 from 'd3'
 import { times } from 'lodash'
 import { App } from './components/App'
-import { circle, spiral, twistedSpiral } from '../src/lib/curveEquations'
+import { circle, spiral } from '../src/lib/curveEquations'
 import { opacityModulus } from '../src/lib/helpers'
 
 function renderApp() {
@@ -81,26 +81,19 @@ function makeSpirals() {
           spiralColor: d.genre,
           spiralYCoord: Number(d.bpm),
           spiralRadius: Number(d.loudness),
-          spiralNumberOfLines: Number(d.length),
-          // track_name: d.track_name,
-          // artist_name: d.artist_name,
-          // energy: Number(d.energy),
-          // danceability: Number(d.danceability),
-          // liveness: Number(d.liveness),
-          // valence: Number(d.valence),
-          // acousticness: Number(d.acousticness),
-          // speechiness: Number(d.speechiness),
-          // popularity: Number(d.popularity),
+          spiralAngle: Number(d.length),
         }
       })
     })
     .then(dataset => {
       // constants
-      const internalRadius = 10
-      const startingSpiralRadius = 10
+      const spiralInternalRadius = 10
+      const spiralStartingRadius = 10
       const spiralGrowingFactor = 20
-      const maxLengthValue = d3.max(dataset, d => d.spiralNumberOfLines)
-      const spiralLineAngleIncrement = (2 * Math.PI) / maxLengthValue
+      const spiralMaxAngle = d3.max(dataset, d => d.spiralAngle)
+      const spiralLinesCount = 180
+      const spiralLineAngleIncrement = (2 * Math.PI) / spiralLinesCount
+      const circleRadius = 3
 
       // set scales according to dataset features
       xScale.domain([0, dataset.length])
@@ -122,7 +115,7 @@ function makeSpirals() {
         .attr('fill', d => colorScheme(d.spiralColor))
         .attr('cx', 0)
         .attr('cy', 0)
-        .attr('r', 4)
+        .attr('r', circleRadius)
 
       // append lines to every single group
       datapoints
@@ -132,24 +125,24 @@ function makeSpirals() {
         .attr('x1', 0)
         .attr('y1', (d, i) => height - yScale(d.spiralYCoord))
         .attr('x2', 0)
-        .attr('y2', internalRadius)
+        .attr('y2', spiralInternalRadius)
 
       // .each gives access to data properties of every single element
       datapoints.each((datum, i, svgArray) => {
         // for each datapoint, draw lines following data
-        times(datum.spiralNumberOfLines).forEach(j => {
+        times(spiralLinesCount).forEach(j => {
           const angle = spiralLineAngleIncrement * j
-          const circlePoints = circle(internalRadius, angle)
+          if (angle > (datum.spiralAngle / spiralMaxAngle) * (2 * Math.PI)) return
+          const circlePoints = circle(spiralInternalRadius, angle)
           const spiralPoints = spiral(
-            internalRadius + startingSpiralRadius,
+            spiralInternalRadius + spiralStartingRadius,
             angle,
             spiralGrowingFactor
           )
-          const twistedSpiralPoints = twistedSpiral(
-            internalRadius + startingSpiralRadius,
-            angle,
-            spiralGrowingFactor,
-            j
+          const twistedSpiralPoints = spiral(
+            spiralInternalRadius + spiralStartingRadius,
+            angle - spiralLineAngleIncrement * 12,
+            spiralGrowingFactor / 2
           )
           const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
@@ -164,10 +157,10 @@ function makeSpirals() {
             // .attr('opacity', spiralModulus)
             // .attr('stroke-width', spiralModulus)
             .append('path')
-            .attr('fill', 'none')
             .attr('stroke', d => colorScheme(d.spiralColor))
-            .attr('opacity', spiralModulus)
             .attr('stroke-width', spiralModulus)
+            .attr('opacity', spiralModulus)
+            .attr('fill', 'transparent')
             .attr(
               'd',
               `m ${circlePoints.x} ${circlePoints.y} 

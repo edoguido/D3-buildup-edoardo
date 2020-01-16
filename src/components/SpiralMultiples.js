@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import * as d3 from 'd3'
 import { times } from 'lodash-es'
-import { circle, spiral, twistedSpiral } from '../lib/curveEquations'
+import { circle, spiral } from '../lib/curveEquations'
 import { opacityModulus } from '../lib/helpers'
 import _dataset from '../data/top50.json'
 
@@ -29,12 +29,13 @@ export default function SpiralMultiples(props) {
   const [viewBox] = useState([0, 0, width, height])
 
   // graph constants
-  const internalRadius = 10
-  const startingSpiralRadius = 10
+  const spiralInternalRadius = 10
+  const spiralStartingRadius = 10
   const spiralGrowingFactor = 20
-  const maxSpiralAngle = d3.max(dataset, d => d.spiralAngle)
-  const spiralLinesCount = 300
+  const spiralMaxAngle = d3.max(dataset, d => d.spiralAngle)
+  const spiralLinesCount = 180
   const spiralLineAngleIncrement = (2 * Math.PI) / spiralLinesCount
+  const circleRadius = 3
 
   // scales
   const colorScheme = d3.scaleOrdinal(d3.schemeCategory10)
@@ -61,7 +62,7 @@ export default function SpiralMultiples(props) {
                 fill={colorScheme(datum.spiralColor)}
                 cx="0"
                 cy="0"
-                r="4"
+                r={circleRadius}
               />
               <line
                 stroke="black"
@@ -69,37 +70,26 @@ export default function SpiralMultiples(props) {
                 x1="0"
                 y1={height - yScale(datum.spiralYCoord)}
                 x2="0"
-                y2={internalRadius}
+                y2={spiralInternalRadius}
               />
               <g>
                 {times(spiralLinesCount).map(j => {
                   const angle = spiralLineAngleIncrement * j
-                  if (angle > (datum.spiralAngle / maxSpiralAngle) * (2 * Math.PI)) return
-                  const circlePoints = circle(internalRadius, angle)
+                  if (angle > (datum.spiralAngle / spiralMaxAngle) * (2 * Math.PI)) return
+                  const circlePoints = circle(spiralInternalRadius, angle)
                   const spiralPoints = spiral(
-                    internalRadius + startingSpiralRadius,
+                    spiralInternalRadius + spiralStartingRadius,
                     angle,
                     spiralGrowingFactor
                   )
-                  const twistedSpiralPoints = twistedSpiral(
-                    internalRadius + startingSpiralRadius,
-                    angle,
-                    spiralGrowingFactor,
-                    100
+                  const twistedSpiralPoints = spiral(
+                    spiralInternalRadius + spiralStartingRadius,
+                    angle - spiralLineAngleIncrement * 12,
+                    spiralGrowingFactor / 2
                   )
                   const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
                   return (
-                    // <line
-                    //   key={j}
-                    //   stroke={colorScheme(datum.spiralColor)}
-                    //   strokeWidth={spiralModulus}
-                    //   opacity={spiralModulus}
-                    //   x1={circlePoints.x}
-                    //   y1={circlePoints.y}
-                    //   x2={spiralPoints.x}
-                    //   y2={spiralPoints.y}
-                    // />
                     <path
                       key={j}
                       stroke={colorScheme(datum.spiralColor)}
