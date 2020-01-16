@@ -2,6 +2,20 @@ body {
   padding: 32px;
 }
 
+@media (prefers-color-scheme: light) {
+  body {
+    color: black;
+    background-color: white;
+  }
+}
+/* 
+@media (prefers-color-scheme: dark) {
+  body {
+    color: white;
+    background-color: black;
+  }
+}
+ */
 h1 {
   margin: 32px;
 }

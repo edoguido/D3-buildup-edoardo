@@ -28,6 +28,9 @@ if (module.hot) {
   })
 }
 
+let debug = false
+window.addEventListener('keypress', e => (e.key === 'd' ? !debug : null))
+
 function makeSpirals() {
   //
   // set initial properties of the chart
@@ -91,7 +94,7 @@ function makeSpirals() {
       const spiralStartingRadius = 10
       const spiralGrowingFactor = 20
       const spiralMaxAngle = d3.max(dataset, d => d.spiralAngle)
-      const spiralLinesCount = 180
+      const spiralLinesCount = 200
       const spiralLineAngleIncrement = (2 * Math.PI) / spiralLinesCount
       const circleRadius = 3
 
@@ -140,22 +143,15 @@ function makeSpirals() {
             spiralGrowingFactor
           )
           const twistedSpiralPoints = spiral(
-            spiralInternalRadius + spiralStartingRadius,
-            angle - spiralLineAngleIncrement * 12,
+            spiralInternalRadius + spiralStartingRadius / 2,
+            angle - (Math.PI / spiralLinesCount + (Math.PI / (spiralLinesCount * 5)) * j),
+            // angle - spiralLineAngleIncrement * (spiralLinesCount / 10),
             spiralGrowingFactor / 2
           )
           const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
-          d3.select(svgArray[i])
-            // .append('line')
-            // .attr('opacity', 0)
-            // .attr('stroke', d => colorScheme(d.spiralColor))
-            // .attr('x1', circlePoints.x)
-            // .attr('y1', circlePoints.y)
-            // .attr('x2', spiralPoints.x)
-            // .attr('y2', spiralPoints.y)
-            // .attr('opacity', spiralModulus)
-            // .attr('stroke-width', spiralModulus)
+          const singleSpiralSelection = d3.select(svgArray[i])
+          singleSpiralSelection
             .append('path')
             .attr('stroke', d => colorScheme(d.spiralColor))
             .attr('stroke-width', spiralModulus)
@@ -163,9 +159,49 @@ function makeSpirals() {
             .attr('fill', 'transparent')
             .attr(
               'd',
-              `m ${circlePoints.x} ${circlePoints.y} 
-              q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}`
+              `M ${circlePoints.x} ${circlePoints.y} 
+              Q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}`
             )
+
+          //
+          // should repaint chart if debug is true
+          //
+          // if (debug === true) {
+          //   singleSpiralSelection
+          //     .append('line')
+          //     .attr('opacity', 1)
+          //     .attr('stroke', 'gray')
+          //     .attr('stroke-width', 0.5)
+          //     .attr('x1', circlePoints.x)
+          //     .attr('y1', circlePoints.y)
+          //     .attr('x2', twistedSpiralPoints.x)
+          //     .attr('y2', twistedSpiralPoints.y)
+          //   singleSpiralSelection
+          //     .append('line')
+          //     .attr('opacity', 1)
+          //     .attr('stroke', 'gray')
+          //     .attr('stroke-width', 0.5)
+          //     .attr('x1', twistedSpiralPoints.x)
+          //     .attr('y1', twistedSpiralPoints.y)
+          //     .attr('x2', spiralPoints.x)
+          //     .attr('y2', spiralPoints.y)
+
+          //   singleSpiralSelection
+          //     .append('circle')
+          //     .attr('opacity', 1)
+          //     .attr('fill', 'red')
+          //     .attr('cx', twistedSpiralPoints.x)
+          //     .attr('cy', twistedSpiralPoints.y)
+          //     .attr('r', 1.5)
+          // }
+          //   singleSpiralSelection
+          //     .append('circle')
+          //     .attr('opacity', 1)
+          //     .attr('fill', 'red')
+          //     .attr('cx', circlePoints.x)
+          //     .attr('cy', circlePoints.y)
+          //     .attr('r', 1.5)
+          // }
         })
       })
 

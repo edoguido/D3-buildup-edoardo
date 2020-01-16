@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import * as d3 from 'd3'
 import { times } from 'lodash-es'
 import { circle, spiral } from '../lib/curveEquations'
@@ -6,6 +6,15 @@ import { opacityModulus } from '../lib/helpers'
 import _dataset from '../data/top50.json'
 
 export default function SpiralMultiples(props) {
+  const [debug, setDebug] = useState(false)
+  useEffect(() => {
+    window.addEventListener('keypress', e => {
+      if (e.key === 'd') {
+        setDebug(prevState => !prevState)
+      }
+    })
+  }, [])
+
   // dataset
   const dataset = _dataset.map((datum, i) => {
     // Numerical data must be explicitly converted sometimes 🏄‍♂️
@@ -33,7 +42,7 @@ export default function SpiralMultiples(props) {
   const spiralStartingRadius = 10
   const spiralGrowingFactor = 20
   const spiralMaxAngle = d3.max(dataset, d => d.spiralAngle)
-  const spiralLinesCount = 180
+  const spiralLinesCount = 200
   const spiralLineAngleIncrement = (2 * Math.PI) / spiralLinesCount
   const circleRadius = 3
 
@@ -57,7 +66,6 @@ export default function SpiralMultiples(props) {
           {dataset.map((datum, i) => (
             <g key={i} transform={`translate(${xScale(i)}, ${yScale(datum.spiralYCoord)})`}>
               <circle
-                key={i}
                 opacity="1"
                 fill={colorScheme(datum.spiralColor)}
                 cx="0"
@@ -83,22 +91,62 @@ export default function SpiralMultiples(props) {
                     spiralGrowingFactor
                   )
                   const twistedSpiralPoints = spiral(
-                    spiralInternalRadius + spiralStartingRadius,
-                    angle - spiralLineAngleIncrement * 12,
+                    spiralInternalRadius + spiralStartingRadius / 2,
+                    angle - (Math.PI / spiralLinesCount + (Math.PI / (spiralLinesCount * 5)) * j),
+                    // angle - spiralLineAngleIncrement * (spiralLinesCount / 10),
                     spiralGrowingFactor / 2
                   )
                   const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
                   return (
-                    <path
-                      key={j}
-                      stroke={colorScheme(datum.spiralColor)}
-                      strokeWidth={spiralModulus}
-                      opacity={spiralModulus}
-                      fill="transparent"
-                      d={`m ${circlePoints.x} ${circlePoints.y}
-                      q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}`}
-                    />
+                    <g key={j}>
+                      <path
+                        stroke={colorScheme(datum.spiralColor)}
+                        strokeWidth={debug ? 1.5 : spiralModulus}
+                        opacity={debug ? 1 : spiralModulus}
+                        fill="transparent"
+                        d={`
+                          M ${circlePoints.x} ${circlePoints.y}
+                          Q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
+                        `}
+                      />
+                      {debug && (
+                        <>
+                          <line
+                            opacity="1"
+                            stroke="gray"
+                            strokeWidth="0.5"
+                            x1={circlePoints.x}
+                            y1={circlePoints.y}
+                            x2={twistedSpiralPoints.x}
+                            y2={twistedSpiralPoints.y}
+                          />
+                          <line
+                            opacity="0.5"
+                            stroke="gray"
+                            strokeWidth="0.5"
+                            x1={twistedSpiralPoints.x}
+                            y1={twistedSpiralPoints.y}
+                            x2={spiralPoints.x}
+                            y2={spiralPoints.y}
+                          />
+                          <circle
+                            opacity="1"
+                            fill="red"
+                            cx={twistedSpiralPoints.x}
+                            cy={twistedSpiralPoints.y}
+                            r="1.5"
+                          />
+                          <circle
+                            opacity="1"
+                            fill="blue"
+                            cx={spiralPoints.x}
+                            cy={spiralPoints.y}
+                            r="1.5"
+                          />
+                        </>
+                      )}
+                    </g>
                   )
                 })}
               </g>
