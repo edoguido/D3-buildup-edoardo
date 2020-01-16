@@ -13,7 +13,7 @@ export default function SpiralMultiples(props) {
       spiralColor: datum.genre,
       spiralYCoord: Number(datum.bpm),
       spiralRadius: Number(datum.loudness),
-      spiralNumberOfLines: Number(datum.length),
+      spiralAngle: Number(datum.length),
     }
   })
 
@@ -32,8 +32,9 @@ export default function SpiralMultiples(props) {
   const internalRadius = 10
   const startingSpiralRadius = 10
   const spiralGrowingFactor = 20
-  const maxLengthValue = d3.max(dataset, d => d.spiralNumberOfLines)
-  const spiralLineAngleIncrement = (2 * Math.PI) / maxLengthValue
+  const maxSpiralAngle = d3.max(dataset, d => d.spiralAngle)
+  const spiralLinesCount = 300
+  const spiralLineAngleIncrement = (2 * Math.PI) / spiralLinesCount
 
   // scales
   const colorScheme = d3.scaleOrdinal(d3.schemeCategory10)
@@ -71,8 +72,9 @@ export default function SpiralMultiples(props) {
                 y2={internalRadius}
               />
               <g>
-                {times(datum.spiralNumberOfLines).map(j => {
+                {times(spiralLinesCount).map(j => {
                   const angle = spiralLineAngleIncrement * j
+                  if (angle > (datum.spiralAngle / maxSpiralAngle) * (2 * Math.PI)) return
                   const circlePoints = circle(internalRadius, angle)
                   const spiralPoints = spiral(
                     internalRadius + startingSpiralRadius,
@@ -83,7 +85,7 @@ export default function SpiralMultiples(props) {
                     internalRadius + startingSpiralRadius,
                     angle,
                     spiralGrowingFactor,
-                    j
+                    100
                   )
                   const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
@@ -104,7 +106,7 @@ export default function SpiralMultiples(props) {
                       strokeWidth={spiralModulus}
                       opacity={spiralModulus}
                       fill="transparent"
-                      d={`m ${circlePoints.x} ${circlePoints.y} 
+                      d={`m ${circlePoints.x} ${circlePoints.y}
                       q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}`}
                     />
                   )
