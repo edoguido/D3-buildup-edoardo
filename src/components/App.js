@@ -3,6 +3,22 @@ import SpiralMultiples from './SpiralMultiples'
 
 export class App extends React.Component {
   render() {
-    return <SpiralMultiples />
+    return (
+      <>
+        <span>D3 Exercise — </span>
+        <span>
+          Data:{' '}
+          <a
+            href="https://www.kaggle.com/leonardopena/top50spotify2019"
+            target="_blank"
+            without
+            rel="noopener noreferrer"
+          >
+            Top 50 Spotify Songs - 2019
+          </a>
+        </span>
+        <SpiralMultiples />
+      </>
+    )
   }
 }

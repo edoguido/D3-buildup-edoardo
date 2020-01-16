@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import * as d3 from 'd3'
 import { times } from 'lodash-es'
 import { circle, spiral } from '../lib/curveEquations'
+import { opacityModulus } from '../lib/helpers'
 import _dataset from '../data/top50.json'
 
 export default function SpiralMultiples(props) {
@@ -24,7 +25,7 @@ export default function SpiralMultiples(props) {
     left: 80,
   })
   const [width] = useState(1920)
-  const [height] = useState(640)
+  const [height] = useState(540)
   const [viewBox] = useState([0, 0, width, height])
 
   // graph constants
@@ -33,7 +34,6 @@ export default function SpiralMultiples(props) {
   const spiralGrowingFactor = 20
   const maxLengthValue = d3.max(dataset, d => d.spiralNumberOfLines)
   const spiralLineAngleIncrement = (2 * Math.PI) / maxLengthValue
-  const opacityModulus = (constant, modulus, angle) => constant + ((angle + Math.PI) % modulus)
 
   const colorScheme = d3.scaleOrdinal(d3.schemeCategory10)
 
@@ -48,7 +48,7 @@ export default function SpiralMultiples(props) {
 
   return (
     <div className="chart">
-      <h1>Spiral Chart with React and D3</h1>
+      <h2>Spiral Chart with React and D3</h2>
 
       <svg width={width} height={height} viewBox={viewBox}>
         <g transform={`translate(${margin.left}, 0)`}>
@@ -79,12 +79,14 @@ export default function SpiralMultiples(props) {
                     angle,
                     spiralGrowingFactor
                   )
+                  const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
                   return (
                     <line
                       key={t}
                       stroke={colorScheme(datum.spiralColor)}
-                      opacity={opacityModulus(0.1, Math.PI / 5, angle)}
+                      strokeWidth={spiralModulus}
+                      opacity={spiralModulus}
                       x1={circlePoints.x}
                       y1={circlePoints.y}
                       x2={spiralPoints.x}

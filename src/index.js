@@ -9,11 +9,12 @@ import * as d3 from 'd3'
 import { times } from 'lodash'
 import { App } from './components/App'
 import { circle, spiral } from '../src/lib/curveEquations'
+import { opacityModulus } from '../src/lib/helpers'
 
 function renderApp() {
-  makeSpirals()
-
   ReactDOM.render(<App />, document.getElementById('root'))
+
+  makeSpirals()
 }
 
 // First render
@@ -29,29 +30,22 @@ if (module.hot) {
 
 function makeSpirals() {
   //
-  // set the initial properties of the chart
-  //
-  // eg the margins, the width and the height of the svg
+  // set initial properties of the chart
   const margin = {
     top: 80,
     right: 80,
     bottom: 80,
     left: 80,
   }
-  const width = 1420
-  const height = 720
+  const width = 1920
+  const height = 540
 
   // create the svg
   const svgContainer = d3
     .create('svg')
     .attr('width', width)
     .attr('height', height)
-    .attr('viewBox', [
-      0,
-      0,
-      width + margin.left + margin.right,
-      height + margin.top + margin.bottom,
-    ])
+    .attr('viewBox', [0, 0, width, height])
 
   const chartArea = svgContainer
     .append('g')
@@ -102,10 +96,11 @@ function makeSpirals() {
     })
     .then(dataset => {
       // constants
-      const maxLengthValue = d3.max(dataset, d => d.spiralNumberOfLines)
       const internalRadius = 10
       const startingSpiralRadius = 10
       const spiralGrowingFactor = 20
+      const maxLengthValue = d3.max(dataset, d => d.spiralNumberOfLines)
+      const spiralLineAngleIncrement = (2 * Math.PI) / maxLengthValue
 
       // set scales according to dataset features
       xScale.domain([0, dataset.length])
@@ -139,21 +134,18 @@ function makeSpirals() {
         .attr('x2', 0)
         .attr('y2', internalRadius)
 
+      // .each gives access to data properties of every single element
       datapoints.each((datum, i, svgArray) => {
+        // for each datapoint, draw lines following data
         times(datum.spiralNumberOfLines).forEach(j => {
-          const angle = ((2 * Math.PI) / maxLengthValue) * j
-          const opacityModulus = (constant, modulus) => constant + ((angle + Math.PI) % modulus)
-          const numberOfLinesScale = d3
-            .scaleLinear()
-            .range([0, Math.PI * 2])
-            .domain([0, maxLengthValue])
-
+          const angle = spiralLineAngleIncrement * j
           const circlePoints = circle(internalRadius, angle)
           const spiralPoints = spiral(
             internalRadius + startingSpiralRadius,
             angle,
             spiralGrowingFactor
           )
+          const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
           d3.select(svgArray[i])
             .append('line')
@@ -163,17 +155,16 @@ function makeSpirals() {
             .attr('y1', circlePoints.y)
             .attr('x2', spiralPoints.x)
             .attr('y2', spiralPoints.y)
-            .attr('opacity', d =>
-              angle < numberOfLinesScale(d.spiralNumberOfLines)
-                ? opacityModulus(0.1, Math.PI / 5)
-                : 0
-            )
+            .attr('opacity', spiralModulus)
+            .attr('stroke-width', spiralModulus)
         })
       })
 
-      const d3ChartTitle = document.createElement('H1')
+      const d3ChartTitle = document.createElement('H2')
       d3ChartTitle.innerHTML = 'Spiral chart with pure D3'
 
-      document.getElementById('chart').appendChild(svgContainer.node())
+      const chartEl = document.getElementById('chart')
+      chartEl.appendChild(d3ChartTitle)
+      chartEl.appendChild(svgContainer.node())
     })
 }
