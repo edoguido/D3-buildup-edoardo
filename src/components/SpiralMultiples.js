@@ -35,8 +35,8 @@ export default function SpiralMultiples(props) {
   const maxLengthValue = d3.max(dataset, d => d.spiralNumberOfLines)
   const spiralLineAngleIncrement = (2 * Math.PI) / maxLengthValue
 
+  // scales
   const colorScheme = d3.scaleOrdinal(d3.schemeCategory10)
-
   const xScale = d3
     .scaleLinear()
     .range([0, width - margin.right])
