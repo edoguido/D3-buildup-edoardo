@@ -8,8 +8,8 @@ import './style.css'
 import * as d3 from 'd3'
 import { times } from 'lodash'
 import { App } from './components/App'
-import { circle, spiral } from '../src/lib/curveEquations'
-import { opacityModulus } from '../src/lib/helpers'
+import { circle, spiral } from './lib/curveEquations'
+import { opacityModulus } from './lib/helpers'
 
 function renderApp() {
   ReactDOM.render(<App />, document.getElementById('root'))
