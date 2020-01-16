@@ -8,13 +8,13 @@ import './style.css'
 import * as d3 from 'd3'
 import { times } from 'lodash'
 import { App } from './components/App'
-import { circle, spiral } from '../src/lib/curveEquations'
+import { circle, spiral, twistedSpiral } from '../src/lib/curveEquations'
 import { opacityModulus } from '../src/lib/helpers'
 
 function renderApp() {
   ReactDOM.render(<App />, document.getElementById('root'))
 
-  // makeSpirals()
+  makeSpirals()
 }
 
 // First render
@@ -145,18 +145,34 @@ function makeSpirals() {
             angle,
             spiralGrowingFactor
           )
+          const twistedSpiralPoints = twistedSpiral(
+            internalRadius + startingSpiralRadius,
+            angle,
+            spiralGrowingFactor,
+            j
+          )
           const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
           d3.select(svgArray[i])
-            .append('line')
-            .attr('opacity', 0)
+            // .append('line')
+            // .attr('opacity', 0)
+            // .attr('stroke', d => colorScheme(d.spiralColor))
+            // .attr('x1', circlePoints.x)
+            // .attr('y1', circlePoints.y)
+            // .attr('x2', spiralPoints.x)
+            // .attr('y2', spiralPoints.y)
+            // .attr('opacity', spiralModulus)
+            // .attr('stroke-width', spiralModulus)
+            .append('path')
+            .attr('fill', 'none')
             .attr('stroke', d => colorScheme(d.spiralColor))
-            .attr('x1', circlePoints.x)
-            .attr('y1', circlePoints.y)
-            .attr('x2', spiralPoints.x)
-            .attr('y2', spiralPoints.y)
             .attr('opacity', spiralModulus)
             .attr('stroke-width', spiralModulus)
+            .attr(
+              'd',
+              `m ${circlePoints.x} ${circlePoints.y} 
+              q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}`
+            )
         })
       })
 

@@ -71,8 +71,8 @@ export default function SpiralMultiples(props) {
                 y2={internalRadius}
               />
               <g>
-                {times(datum.spiralNumberOfLines).map(t => {
-                  const angle = spiralLineAngleIncrement * t
+                {times(datum.spiralNumberOfLines).map(j => {
+                  const angle = spiralLineAngleIncrement * j
                   const circlePoints = circle(internalRadius, angle)
                   const spiralPoints = spiral(
                     internalRadius + startingSpiralRadius,
@@ -83,32 +83,30 @@ export default function SpiralMultiples(props) {
                     internalRadius + startingSpiralRadius,
                     angle,
                     spiralGrowingFactor,
-                    t
+                    j
                   )
                   const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
                   return (
-                    <line
-                      key={t}
-                      stroke={colorScheme(datum.spiralColor)}
-                      strokeWidth={spiralModulus}
-                      opacity={spiralModulus}
-                      x1={circlePoints.x}
-                      y1={circlePoints.y}
-                      x2={spiralPoints.x}
-                      y2={spiralPoints.y}
-                    />
-                    // <path
-                    //   key={t}
+                    // <line
+                    //   key={j}
                     //   stroke={colorScheme(datum.spiralColor)}
                     //   strokeWidth={spiralModulus}
                     //   opacity={spiralModulus}
-                    //   fill="transparent"
-                    //   d={`
-                    //   m ${circlePoints.x} ${circlePoints.y}
-                    //   q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y}
-                    //   ${spiralPoints.x} ${spiralPoints.y}`}
+                    //   x1={circlePoints.x}
+                    //   y1={circlePoints.y}
+                    //   x2={spiralPoints.x}
+                    //   y2={spiralPoints.y}
                     // />
+                    <path
+                      key={j}
+                      stroke={colorScheme(datum.spiralColor)}
+                      strokeWidth={spiralModulus}
+                      opacity={spiralModulus}
+                      fill="transparent"
+                      d={`m ${circlePoints.x} ${circlePoints.y} 
+                      q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}`}
+                    />
                   )
                 })}
               </g>
