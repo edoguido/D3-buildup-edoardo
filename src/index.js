@@ -14,7 +14,7 @@ import { opacityModulus } from '../src/lib/helpers'
 function renderApp() {
   ReactDOM.render(<App />, document.getElementById('root'))
 
-  makeSpirals()
+  // makeSpirals()
 }
 
 // First render

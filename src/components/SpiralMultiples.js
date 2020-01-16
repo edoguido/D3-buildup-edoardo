@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import * as d3 from 'd3'
 import { times } from 'lodash-es'
-import { circle, spiral } from '../lib/curveEquations'
+import { circle, spiral, twistedSpiral } from '../lib/curveEquations'
 import { opacityModulus } from '../lib/helpers'
 import _dataset from '../data/top50.json'
 
@@ -79,6 +79,12 @@ export default function SpiralMultiples(props) {
                     angle,
                     spiralGrowingFactor
                   )
+                  const twistedSpiralPoints = twistedSpiral(
+                    internalRadius + startingSpiralRadius,
+                    angle,
+                    spiralGrowingFactor,
+                    t
+                  )
                   const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
 
                   return (
@@ -92,6 +98,17 @@ export default function SpiralMultiples(props) {
                       x2={spiralPoints.x}
                       y2={spiralPoints.y}
                     />
+                    // <path
+                    //   key={t}
+                    //   stroke={colorScheme(datum.spiralColor)}
+                    //   strokeWidth={spiralModulus}
+                    //   opacity={spiralModulus}
+                    //   fill="transparent"
+                    //   d={`
+                    //   m ${circlePoints.x} ${circlePoints.y}
+                    //   q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y}
+                    //   ${spiralPoints.x} ${spiralPoints.y}`}
+                    // />
                   )
                 })}
               </g>
