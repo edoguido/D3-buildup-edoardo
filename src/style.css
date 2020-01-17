@@ -8,14 +8,14 @@ body {
     background-color: white;
   }
 }
-/* 
-@media (prefers-color-scheme: dark) {
+
+/* @media (prefers-color-scheme: dark) {
   body {
     color: white;
     background-color: black;
   }
-}
- */
+} */
+
 h1 {
   margin: 32px;
 }
@@ -30,9 +30,17 @@ h1 {
 }
 
 /* set both svg elements properties */
+/* D3 version */
 #chart > svg,
 /* React version */
 #root .chart > svg {
   position: relative;
   width: 100%;
+}
+
+.debug {
+  font-size: 0.9em;
+  padding: 4px 6px;
+  color: white !important;
+  background-color: red;
 }

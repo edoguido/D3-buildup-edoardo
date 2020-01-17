@@ -2,6 +2,6 @@
 // Functions used in different graphs
 //
 
-export function opacityModulus(constant, modulus, angle) {
-  return constant + ((angle + Math.PI) % modulus)
+export function opacityModulus(modulus, angle) {
+  return (angle + Math.PI) % modulus
 }

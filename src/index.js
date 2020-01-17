@@ -14,19 +14,19 @@ import { opacityModulus } from './lib/helpers'
 function renderApp() {
   ReactDOM.render(<App />, document.getElementById('root'))
 
-  makeSpirals()
+  // makeSpirals()
 }
 
 // First render
 renderApp()
 
-// Hot module reloading
-if (module.hot) {
-  module.hot.accept('components/App', () => {
-    console.clear()
-    renderApp()
-  })
-}
+// // Hot module reloading
+// if (module.hot) {
+//   module.hot.accept('components/App', () => {
+//     console.clear()
+//     renderApp()
+//   })
+// }
 
 let debug = false
 window.addEventListener('keypress', e => (e.key === 'd' ? !debug : null))
@@ -49,7 +49,7 @@ function makeSpirals() {
     .attr('width', width)
     .attr('height', height)
     .attr('viewBox', [0, 0, width, height])
-    .attr('preserveAspectRatio', 'xMidYMin meet')
+  // .attr('preserveAspectRatio', 'xMidYMin meet')
 
   const chartArea = svgContainer
     .append('g')

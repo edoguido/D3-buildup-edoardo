@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import * as d3 from 'd3'
-import { times } from 'lodash-es'
-import { circle, spiral } from '../lib/curveEquations'
-import { opacityModulus } from '../lib/helpers'
-import _dataset from '../data/top50.json'
+import dirtyDataset from '../data/top50.json'
+import { SpiralShell } from './SpiralShell'
+
+function cleanData(dataset) {
+  return dataset.map((datum, i) => {
+    return {
+      track: datum.track_name,
+      artist: datum.artist_name,
+      genre: datum.genre,
+      bpm: Number(datum.bpm),
+      loudness: Number(datum.loudness),
+      songLength: Number(datum.length),
+    }
+  })
+}
 
 export default function SpiralMultiples(props) {
   const [debug, setDebug] = useState(false)
@@ -15,36 +26,44 @@ export default function SpiralMultiples(props) {
     })
   }, [])
 
-  // dataset
-  const dataset = _dataset.map((datum, i) => {
-    // Numerical data must be explicitly converted sometimes 🏄‍♂️
-    return {
-      spiralColor: datum.genre,
-      spiralYCoord: Number(datum.bpm),
-      spiralRadius: Number(datum.loudness),
-      spiralAngle: Number(datum.length),
-    }
-  })
+  const dataset = cleanData(dirtyDataset)
+
+  // rename desired dataset columns to chart-specific properties
+  // const dataset = sourceDataset.map((song, i) => {
+  //   return {
+  //     spiralColor: song.genre,
+  //     spiralYCoord: song.bpm,
+  //     spiralRadius: song.loudness,
+  //     spiralAngle: song.length,
+  //   }
+  // })
+  const datasetColumnNames = ['Genre', 'BPM', 'Loudness', 'Song Length']
 
   // svg constants
   const [margin] = useState({
     top: 80,
-    right: 80,
-    bottom: 80,
+    right: 120,
+    bottom: 160,
     left: 80,
   })
-  const [width] = useState(1920)
-  const [height] = useState(480)
+  const [width] = useState(2560)
+  const [height] = useState(720)
   const [viewBox] = useState([0, 0, width, height])
 
   // graph constants
+  // chart
   const spiralInternalRadius = 10
-  const spiralStartingRadius = 10
-  const spiralGrowingFactor = 20
-  const spiralMaxAngle = d3.max(dataset, d => d.spiralAngle)
+  const spiralMaxAngle = d3.max(dataset, d => d.songLength)
   const spiralLinesCount = 200
-  const spiralLineAngleIncrement = (2 * Math.PI) / spiralLinesCount
   const circleRadius = 3
+  // texts
+  const fontSize = 10
+  const lineHeight = 1.2
+  const maxStringLength = 36
+  // bottom axis
+  const axisBottomLabelsPadding = 12
+  // legend
+  const legendEntryWidth = 260
 
   // scales
   const colorScheme = d3.scaleOrdinal(d3.schemeCategory10)
@@ -55,7 +74,12 @@ export default function SpiralMultiples(props) {
   const yScale = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
-    .domain(d3.extent(dataset, d => d.spiralYCoord))
+    .domain(d3.extent(dataset, d => d.bpm))
+
+  const trimLongString = (str, maxLength) => {
+    // console.log(str.slice(maxLength))
+    return str
+  }
 
   // axes
   // const xAxis = d3.axisBottom(xScale)
@@ -64,97 +88,58 @@ export default function SpiralMultiples(props) {
   return (
     <div className="chart">
       <h2>Responsive spiral Chart with React and D3</h2>
-      {debug && <span style={{ color: 'red' }}>Debug Mode</span>}
+      {debug && <span className="debug">Debug Mode</span>}
       <svg width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMin meet">
+        <g className="legend" transform={`translate(0, ${margin.top})`}>
+          {datasetColumnNames.map((legendEntry, j) => {
+            return (
+              <g key={j} transform={`translate(${legendEntryWidth * j}, 0)`}>
+                <text>{legendEntry}</text>
+              </g>
+            )
+          })}
+        </g>
         <g transform={`translate(${margin.left}, 0)`}>
           {dataset.map((datum, i) => (
-            <g key={i} transform={`translate(${xScale(i)}, ${yScale(datum.spiralYCoord)})`}>
-              <circle
-                opacity="1"
-                fill={colorScheme(datum.spiralColor)}
-                cx="0"
-                cy="0"
-                r={circleRadius}
-              />
-              <line
-                stroke="black"
-                opacity="0.25"
-                x1="0"
-                y1={height - yScale(datum.spiralYCoord)}
-                x2="0"
-                y2={spiralInternalRadius}
-              />
-              <g>
-                {times(spiralLinesCount).map(j => {
-                  const angle = spiralLineAngleIncrement * j
-                  if (angle > (datum.spiralAngle / spiralMaxAngle) * (2 * Math.PI)) return
-                  const circlePoints = circle(spiralInternalRadius, angle)
-                  const spiralPoints = spiral(
-                    spiralInternalRadius + spiralStartingRadius,
-                    angle,
-                    spiralGrowingFactor
-                  )
-                  const twistedSpiralPoints = spiral(
-                    spiralInternalRadius + spiralStartingRadius / 2,
-                    angle - (Math.PI / spiralLinesCount + (Math.PI / (spiralLinesCount * 5)) * j),
-                    // angle - spiralLineAngleIncrement * (spiralLinesCount / 10),
-                    spiralGrowingFactor / 2
-                  )
-                  const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
-
-                  return (
-                    <g key={j}>
-                      <path
-                        stroke={colorScheme(datum.spiralColor)}
-                        strokeWidth={debug ? 0.5 : spiralModulus}
-                        opacity={debug ? 0.5 : spiralModulus}
-                        fill="transparent"
-                        d={`
-                          M ${circlePoints.x} ${circlePoints.y}
-                          Q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
-                        `}
-                      />
-                      {debug && (
-                        <>
-                          <line
-                            opacity="1"
-                            stroke="gray"
-                            strokeWidth="0.5"
-                            x1={circlePoints.x}
-                            y1={circlePoints.y}
-                            x2={twistedSpiralPoints.x}
-                            y2={twistedSpiralPoints.y}
-                          />
-                          <line
-                            opacity="0.5"
-                            stroke="gray"
-                            strokeWidth="0.5"
-                            x1={twistedSpiralPoints.x}
-                            y1={twistedSpiralPoints.y}
-                            x2={spiralPoints.x}
-                            y2={spiralPoints.y}
-                          />
-                          <circle
-                            opacity="1"
-                            fill="red"
-                            cx={twistedSpiralPoints.x}
-                            cy={twistedSpiralPoints.y}
-                            r="1.5"
-                          />
-                          <circle
-                            opacity="1"
-                            fill="blue"
-                            cx={spiralPoints.x}
-                            cy={spiralPoints.y}
-                            r="1.5"
-                          />
-                        </>
-                      )}
-                    </g>
-                  )
-                })}
+            <>
+              <g
+                transform={`translate(${xScale(i) - fontSize / 2}, ${height -
+                  margin.bottom / 2 +
+                  axisBottomLabelsPadding}) rotate(45)`}
+                fontSize={`${fontSize}px`}
+              >
+                <text y={fontSize * lineHeight * 0} fontWeight="500">
+                  {trimLongString(datum.track, maxStringLength)}
+                </text>
+                <text y={fontSize * lineHeight * 1}>
+                  {trimLongString(datum.artist, maxStringLength)}
+                </text>
               </g>
-            </g>
+              <g key={i} transform={`translate(${xScale(i)}, ${yScale(datum.bpm)})`}>
+                <circle
+                  opacity="1"
+                  fill={colorScheme(datum.genre)}
+                  cx="0"
+                  cy="0"
+                  r={circleRadius}
+                />
+                <line
+                  stroke="black"
+                  opacity="0.25"
+                  x1="0"
+                  y1={height - yScale(datum.bpm) - margin.bottom / 2}
+                  x2="0"
+                  y2={spiralInternalRadius}
+                />
+                <SpiralShell
+                  debug={debug}
+                  linesCount={spiralLinesCount}
+                  color={colorScheme(datum.genre)}
+                  angle={(datum.songLength / spiralMaxAngle) * (2 * Math.PI)}
+                  internalRadius={spiralInternalRadius}
+                />
+              </g>
+            </>
           ))}
         </g>
       </svg>
