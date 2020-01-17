@@ -41,7 +41,7 @@ function makeSpirals() {
     left: 80,
   }
   const width = 1920
-  const height = 540
+  const height = 480
 
   // create the svg
   const svgContainer = d3
@@ -206,7 +206,7 @@ function makeSpirals() {
       })
 
       const d3ChartTitle = document.createElement('H2')
-      d3ChartTitle.innerHTML = 'Spiral chart with pure D3'
+      d3ChartTitle.innerHTML = 'Responsive spiral chart with pure D3'
 
       const chartEl = document.getElementById('chart')
       chartEl.appendChild(d3ChartTitle)

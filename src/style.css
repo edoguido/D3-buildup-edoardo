@@ -19,3 +19,22 @@ body {
 h1 {
   margin: 32px;
 }
+
+/* set both chart containers properties */
+/* D3 version */
+#chart,
+/* React version */
+#root .chart {
+  position: relative;
+  width: 100%;
+}
+
+/* set both svg elements properties */
+#chart > svg,
+/* React version */
+#root .chart > svg {
+  position: relative;
+  width: 100%;
+  left: 0;
+  top: 0;
+}
