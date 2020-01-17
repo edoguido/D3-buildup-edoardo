@@ -34,7 +34,7 @@ export default function SpiralMultiples(props) {
     left: 80,
   })
   const [width] = useState(1920)
-  const [height] = useState(480)
+  const [height] = useState(640)
   const [viewBox] = useState([0, 0, width, height])
 
   // graph constants
@@ -56,6 +56,10 @@ export default function SpiralMultiples(props) {
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
     .domain(d3.extent(dataset, d => d.spiralYCoord))
+
+  //axes
+  // const xAxis = d3.axisBottom(xScale)
+  // const yAxis = d3.axisLeft(yScale)
 
   return (
     <div className="chart">
@@ -102,8 +106,8 @@ export default function SpiralMultiples(props) {
                     <g key={j}>
                       <path
                         stroke={colorScheme(datum.spiralColor)}
-                        strokeWidth={debug ? 1.5 : spiralModulus}
-                        opacity={debug ? 1 : spiralModulus}
+                        strokeWidth={debug ? 0.5 : spiralModulus}
+                        opacity={debug ? 0.5 : spiralModulus}
                         fill="transparent"
                         d={`
                           M ${circlePoints.x} ${circlePoints.y}
