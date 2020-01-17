@@ -57,7 +57,7 @@ export default function SpiralMultiples(props) {
     .range([height - margin.bottom, margin.top])
     .domain(d3.extent(dataset, d => d.spiralYCoord))
 
-  //axes
+  // axes
   // const xAxis = d3.axisBottom(xScale)
   // const yAxis = d3.axisLeft(yScale)
 
