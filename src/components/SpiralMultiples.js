@@ -34,7 +34,7 @@ export default function SpiralMultiples(props) {
     left: 80,
   })
   const [width] = useState(1920)
-  const [height] = useState(640)
+  const [height] = useState(480)
   const [viewBox] = useState([0, 0, width, height])
 
   // graph constants
@@ -64,8 +64,8 @@ export default function SpiralMultiples(props) {
   return (
     <div className="chart">
       <h2>Responsive spiral Chart with React and D3</h2>
-
-      <svg width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMid meet">
+      {debug && <span style={{ color: 'red' }}>Debug Mode</span>}
+      <svg width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMin meet">
         <g transform={`translate(${margin.left}, 0)`}>
           {dataset.map((datum, i) => (
             <g key={i} transform={`translate(${xScale(i)}, ${yScale(datum.spiralYCoord)})`}>
