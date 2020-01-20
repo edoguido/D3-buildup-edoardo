@@ -37,14 +37,14 @@ export function SpiralShell(props) {
               opacity={debug ? 0.5 : spiralModulus}
               fill="transparent"
               d={`
-                          M ${circlePoints.x} ${circlePoints.y}
-                          Q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
-                        `}
+                M ${circlePoints.x} ${circlePoints.y}
+                Q ${twistedSpiralPoints.x} ${twistedSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
+              `}
             />
-            {debug && j % 10 === 0 && (
+            {debug && j % 12 === 0 && (
               <>
                 <line
-                  opacity="1"
+                  opacity="0.5"
                   stroke="gray"
                   strokeWidth="0.5"
                   x1={circlePoints.x}
