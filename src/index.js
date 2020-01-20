@@ -9,7 +9,7 @@ import * as d3 from 'd3'
 import { times } from 'lodash'
 import { App } from './components/App'
 import { circle, spiral } from './lib/curveEquations'
-import { opacityModulus } from './lib/helpers'
+import { angularModulus } from './lib/helpers'
 
 function renderApp() {
   ReactDOM.render(<App />, document.getElementById('root'))
@@ -149,7 +149,7 @@ function makeSpirals() {
             // angle - spiralLineAngleIncrement * (spiralLinesCount / 10),
             spiralGrowingFactor / 2
           )
-          const spiralModulus = opacityModulus(0.3, Math.PI / 5, angle)
+          const spiralModulus = angularModulus(0.3, Math.PI / 5, angle)
 
           const singleSpiralSelection = d3.select(svgArray[i])
           singleSpiralSelection

@@ -2,8 +2,8 @@
 // Functions used in different graphs
 //
 
-export function opacityModulus(modulus, angle) {
-  return (angle + Math.PI) % modulus
+export function angularModulus(modulus, angle, startValue = 0) {
+  return startValue + ((angle + Math.PI) % modulus)
 }
 
 export function numberOfDistinctElements(array, category) {

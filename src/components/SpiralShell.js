@@ -1,7 +1,7 @@
 import React from 'react'
 import { times } from 'lodash-es'
 import { circle, spiral } from '../lib/curveEquations'
-import { opacityModulus } from '../lib/helpers'
+import { angularModulus } from '../lib/helpers'
 
 export function SpiralShell(props) {
   const { debug, linesCount, color, angle: endAngle, internalRadius } = props
@@ -9,31 +9,34 @@ export function SpiralShell(props) {
   const spiralStartingRadius = 10
   const spiralGrowingFactor = 16
   const spiralLineAngleIncrement = (2 * Math.PI) / linesCount
+  const startOpacityValue = 0.3
 
   return (
     <g>
       {times(linesCount).map(j => {
         const angle = spiralLineAngleIncrement * j
+        const angularModulusValue = angularModulus(Math.PI / 5, angle, startOpacityValue)
+        const modulusStart = angularModulusValue !== startOpacityValue
         if (angle > endAngle) return
         const circlePoints = circle(internalRadius, angle)
-        const spiralPoints = spiral(
-          internalRadius + spiralStartingRadius,
-          angle,
-          spiralGrowingFactor
-        )
         const twistedSpiralPoints = spiral(
           internalRadius + spiralStartingRadius / 2,
           angle - (Math.PI / linesCount + (Math.PI / (linesCount * 5)) * j),
           // angle - spiralLineAngleIncrement * (linesCount / 10),
           spiralGrowingFactor / 2
         )
-        const spiralModulus = 0.3 + opacityModulus(Math.PI / 5, angle)
+        const spiralPoints = spiral(
+          internalRadius + spiralStartingRadius,
+          angle,
+          spiralGrowingFactor
+        )
+        const spiralModulus = modulusStart ? angularModulusValue : startOpacityValue
 
         return (
           <g key={j}>
             <path
               stroke={color}
-              strokeWidth={debug ? 0.5 : spiralModulus}
+              strokeWidth={debug ? 0.5 : 0.75}
               opacity={debug ? 0.5 : spiralModulus}
               fill="transparent"
               d={`
