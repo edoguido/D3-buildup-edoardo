@@ -27,9 +27,6 @@ export default function SpiralMultiples(props) {
     })
   }, [])
 
-  const [hoveredElement, setHoveredElement] = useState(-1)
-  const [hovering, setHovering] = useState(false)
-
   const dataset = cleanData(dirtyDataset)
 
   // rename desired dataset columns to chart-specific properties
@@ -101,27 +98,6 @@ export default function SpiralMultiples(props) {
   // const xAxis = d3.axisBottom(xScale)
   // const yAxis = d3.axisLeft(yScale)
 
-  //
-  // interaction
-  const handleMouseEnter = index => {
-    setHoveredElement(index)
-    setHovering(true)
-    console.log(index, hoveredElement)
-  }
-
-  const handleMouseOut = () => {
-    setHovering(false)
-  }
-
-  const lowerSpiral = (index, scaleCategory) => {
-    // hovering === true && index === hoveredElement ? yScale(scale) : height
-    if (hovering === true) {
-      if (index === hoveredElement) {
-        return yScale(scaleCategory)
-      } else return height
-    } else return yScale(scaleCategory)
-  }
-
   return (
     <div className="chart">
       <h2>Responsive spiral Chart with React and D3</h2>
@@ -148,12 +124,8 @@ export default function SpiralMultiples(props) {
           {dataset.map((datum, i) => {
             const color = colorScheme(differentGenres.indexOf(datum.genre))
             return (
-              <g
-                key={i}
-                onMouseEnter={() => handleMouseEnter(i)}
-                onMouseOut={() => handleMouseOut()}
-              >
-                <g transform={`translate(${xScale(i)}, ${lowerSpiral(i, datum.bpm)})`}>
+              <g key={i}>
+                <g transform={`translate(${xScale(i)}, ${yScale(datum.bpm)})`}>
                   <circle opacity="1" fill={color} cx="0" cy="0" r={circleRadius} />
                   <line
                     stroke="black"
