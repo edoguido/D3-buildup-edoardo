@@ -48,20 +48,19 @@ export default function SpiralMultiples(props) {
   const [margin] = useState({
     top: 80,
     right: 120,
-    bottom: 160,
-    left: 80,
+    bottom: 480,
+    left: 240,
   })
   const [width] = useState(2560)
-  const [height] = useState(720)
-  const [viewBox] = useState([0, 0, width, height])
+  const [height] = useState(960)
+  const [viewBox] = useState([0, 0, width + margin.right, height + margin.bottom])
 
   //
   // graph constants
   // chart
   const spiralInternalRadius = 10
   const spiralMaxAngle = d3.max(dataset, d => d.songLength)
-  const spiralLinesCount = 200
-  const circleRadius = 3
+  const spiralLinesCount = 120
   //
   // texts
   const fontSize = 10
@@ -73,7 +72,8 @@ export default function SpiralMultiples(props) {
   //
   // legend
   const legendEntryWidth = 260
-  const legendRectSize = 12
+  const legendEntryHeight = 18
+  const legendSymbolSize = 6
   //
   // scales
   const colorScheme = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
@@ -102,31 +102,40 @@ export default function SpiralMultiples(props) {
     <div className="chart">
       <h2>Responsive spiral Chart with React and D3</h2>
       <svg width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMin meet">
-        <g className="legend" transform={`translate(0, ${margin.top})`}>
+        {/* <g className="legend" transform={`translate(0, ${margin.top})`}>
           {datasetColumnNames.map((legendEntry, j) => {
             return (
               <g key={j} transform={`translate(${legendEntryWidth * j}, 0)`}>
-                {/* <rect
-                  width={legendRectSize}
-                  height={legendRectSize}
-                  x={0}
-                  y={-legendRectSize}
-                  color={colorScheme(legendEntry)}
+                <text x={legendRectSize * 1.5}>{legendEntry}</text>
+              </g>
+            )
+          })}
+        </g> */}
+
+        <g className="legend" transform={`translate(0, ${margin.top})`}>
+          {differentGenres.map((legendEntry, j) => {
+            console.log(legendEntry, colorScheme(j))
+            return (
+              <g key={j} transform={`translate(0, ${legendEntryHeight * j})`}>
+                <circle
+                  fill={colorScheme(j)}
+                  cx={legendSymbolSize / 2}
+                  cy={-legendSymbolSize}
+                  r={legendSymbolSize / 2}
                 >
                   {legendEntry}
-                </rect> */}
-                <text x={legendRectSize * 1.5}>{legendEntry}</text>
+                </circle>
+                <text x={legendSymbolSize * 1.5}>{legendEntry}</text>
               </g>
             )
           })}
         </g>
         <g transform={`translate(${margin.left}, ${margin.top})`}>
           {dataset.map((datum, i) => {
-            const color = colorScheme(differentGenres.indexOf(datum.genre))
+            const color = ['#ffffff', colorScheme(differentGenres.indexOf(datum.genre))]
             return (
               <g key={i}>
                 <g transform={`translate(${xScale(i)}, ${yScale(datum.bpm)})`}>
-                  <circle opacity="1" fill={color} cx="0" cy="0" r={circleRadius} />
                   <line
                     stroke="black"
                     opacity="0.25"
@@ -137,10 +146,11 @@ export default function SpiralMultiples(props) {
                   />
                   <SpiralShell
                     debug={debug}
-                    linesCount={spiralLinesCount}
                     color={color}
                     angle={(datum.songLength / spiralMaxAngle) * (2 * Math.PI)}
                     internalRadius={spiralInternalRadius}
+                    modulus={Math.PI / 6}
+                    linesCount={spiralLinesCount}
                   />
                 </g>
                 <g
