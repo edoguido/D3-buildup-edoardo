@@ -47,12 +47,12 @@ export default function SpiralMultiples(props) {
   // svg constants
   const [margin] = useState({
     top: 80,
-    right: 120,
-    bottom: 480,
-    left: 240,
+    right: 220,
+    bottom: 120,
+    left: 40,
   })
-  const [width] = useState(2560)
-  const [height] = useState(960)
+  const [width] = useState(2880)
+  const [height] = useState(840)
   const [viewBox] = useState([0, 0, width + margin.right, height + margin.bottom])
 
   //
@@ -60,19 +60,19 @@ export default function SpiralMultiples(props) {
   // chart
   const spiralInternalRadius = 10
   const spiralMaxAngle = d3.max(dataset, d => d.songLength)
-  const spiralLinesCount = 120
+  const spiralLinesCount = 240
   //
   // texts
   const fontSize = 10
   const lineHeight = 1.2
-  const maxStringLength = 36
+  const maxStringLength = 32
   //
   // bottom axis
   const axisBottomLabelsPadding = 12
   //
   // legend
-  const legendEntryWidth = 260
-  const legendEntryHeight = 18
+  const legendWidth = 240
+  const legendEntryHeight = fontSize * 1.8
   const legendSymbolSize = 6
   //
   // scales
@@ -87,10 +87,13 @@ export default function SpiralMultiples(props) {
     .domain(d3.extent(dataset, d => d.bpm))
 
   //
-  // trim string only if trimmed character is a space
+  // trim string starting from next space
   const trimLongString = (str, maxLength) => {
-    // console.log(str.slice(maxLength))
-    return str
+    if (str.length > maxLength) {
+      const sliced = str.slice(0, maxLength)
+      const lastSpacePosition = sliced.lastIndexOf(' ')
+      return `${sliced.slice(0, lastSpacePosition)}...`
+    } else return str
   }
 
   //
@@ -112,11 +115,14 @@ export default function SpiralMultiples(props) {
           })}
         </g> */}
 
-        <g className="legend" transform={`translate(0, ${margin.top})`}>
+        <g
+          className="legend"
+          transform={`translate(${margin.left + legendSymbolSize}, ${margin.top})`}
+        >
+          <text fontSize={fontSize * 2.5}>Genres</text>
           {differentGenres.map((legendEntry, j) => {
-            console.log(legendEntry, colorScheme(j))
             return (
-              <g key={j} transform={`translate(0, ${legendEntryHeight * j})`}>
+              <g key={j} transform={`translate(0, ${legendEntryHeight * (j + 2)})`}>
                 <circle
                   fill={colorScheme(j)}
                   cx={legendSymbolSize / 2}
@@ -125,12 +131,17 @@ export default function SpiralMultiples(props) {
                 >
                   {legendEntry}
                 </circle>
-                <text x={legendSymbolSize * 1.5}>{legendEntry}</text>
+                <text x={legendSymbolSize * 1.5} fontSize={fontSize * 1.5}>
+                  {legendEntry}
+                </text>
               </g>
             )
           })}
         </g>
-        <g transform={`translate(${margin.left}, ${margin.top})`}>
+        <g
+          className="chart-area"
+          transform={`translate(${margin.left + legendWidth}, ${margin.top})`}
+        >
           {dataset.map((datum, i) => {
             const color = ['#ffffff', colorScheme(differentGenres.indexOf(datum.genre))]
             return (

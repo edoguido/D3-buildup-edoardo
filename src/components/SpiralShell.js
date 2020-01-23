@@ -4,19 +4,24 @@ import * as d3 from 'd3'
 import { circle, spiral } from '../lib/curveEquations'
 import { opacityModulus } from '../lib/helpers'
 
+//
+// constants
+const DOUBLE_PI = 2 * Math.PI
+const CIRCLE_RADIUS = 3
+const START_RADIUS = 10
+const GROWING_FACTOR = 16
+const MIN_OPACITY = 0.1
+const MAX_OPACITY = 0.8
+const MASK_ANCHOR_FACTOR = 1.15
+
 export function SpiralShell(props) {
   const { debug, color, angle: endAngle, internalRadius, modulus, linesCount } = props
 
-  const DOUBLE_PI = 2 * Math.PI
-  const CIRCLE_RADIUS = 3
-  const START_RADIUS = 10
-  const GROWING_FACTOR = 16
-  const MIN_OPACITY = 0.1
-  const MAX_OPACITY = 0.8
-  const MASK_ANCHOR_FACTOR = 1.15
+  console.log('___RENDER___')
+
   const numberOfModuli = DOUBLE_PI / modulus
   const modulusLinesCount = linesCount / numberOfModuli
-  const computeAnchorPointShift = index => (1 + index) * (DOUBLE_PI / (numberOfModuli * 20))
+  const computeControlPointShift = index => (1 + index) * (DOUBLE_PI / (numberOfModuli * 20))
   // const linesCount = numberOfModuli * modulusLinesCount
   // const spiralLineAngleIncrement = DOUBLE_PI / linesCount
 
@@ -30,11 +35,11 @@ export function SpiralShell(props) {
   const maskPoints = times(numberOfModuli + 1)
     .map(j => {
       const angle = (DOUBLE_PI / (DOUBLE_PI / modulus)) * j
-      const bezierAnchorPointShiftAmount = computeAnchorPointShift(j)
+      const bezierControlPointShiftAmount = computeControlPointShift(j)
       const spiralPoints = spiral(internalRadius + START_RADIUS, angle, GROWING_FACTOR)
       const spiralPointsAnchor = spiral(
         internalRadius + START_RADIUS,
-        angle - bezierAnchorPointShiftAmount,
+        angle - bezierControlPointShiftAmount,
         GROWING_FACTOR / MASK_ANCHOR_FACTOR
       )
       return ` ${spiralPointsAnchor.x} ${spiralPointsAnchor.y} ${spiralPoints.x} ${spiralPoints.y}`
@@ -55,12 +60,12 @@ export function SpiralShell(props) {
       {times(numberOfModuli).map(j => {
         const angle = (DOUBLE_PI / (DOUBLE_PI / modulus)) * j
         if (angle > endAngle) return
-        const bezierAnchorPointShiftAmount = computeAnchorPointShift(j)
+        const bezierControlPointShiftAmount = computeControlPointShift(j)
         // find curves points
         let circlePoints = circle(internalRadius, angle)
         let anchorSpiralPoints = spiral(
           internalRadius + START_RADIUS / 2,
-          angle - bezierAnchorPointShiftAmount,
+          angle - bezierControlPointShiftAmount,
           GROWING_FACTOR / 2
         )
         let spiralPoints = spiral(internalRadius + START_RADIUS, angle, GROWING_FACTOR)
@@ -81,9 +86,9 @@ export function SpiralShell(props) {
               strokeOpacity={debug ? 1 : MAX_OPACITY}
               fill="transparent"
               d={`
-                  M ${circlePoints.x} ${circlePoints.y}
-                  Q ${anchorSpiralPoints.x} ${anchorSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
-                `}
+                    M ${circlePoints.x} ${circlePoints.y}
+                    Q ${anchorSpiralPoints.x} ${anchorSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
+                  `}
             />
             {debug && (
               <>
@@ -117,35 +122,34 @@ export function SpiralShell(props) {
             )}
             {times(modulusLinesCount).map(k => {
               const subModulusAngle = angle + (modulus / modulusLinesCount) * k
-              const angularModulusValue = opacityModulus(
-                modulusLinesCount,
-                k,
-                MIN_OPACITY,
-                MAX_OPACITY
-              )
-              const startOfModulus = angularModulusValue === MIN_OPACITY
+              const lineOpacity = opacityModulus(modulusLinesCount, k, MIN_OPACITY, MAX_OPACITY)
+              const startOfModulus = lineOpacity === MIN_OPACITY
               if (startOfModulus) return
               circlePoints = circle(internalRadius, subModulusAngle)
               anchorSpiralPoints = spiral(
                 internalRadius + START_RADIUS / 2,
-                subModulusAngle - bezierAnchorPointShiftAmount,
+                subModulusAngle - bezierControlPointShiftAmount,
                 GROWING_FACTOR / 2
               )
               spiralPoints = spiral(internalRadius + START_RADIUS, subModulusAngle, GROWING_FACTOR)
 
               return (
-                <g key={k} style={{ clipPath: `url(#clip-${endAngle})` }}>
-                  <path
-                    stroke={colorScale(k)}
-                    strokeWidth={0.75}
-                    strokeOpacity={debug ? 0.35 : angularModulusValue}
-                    fill="transparent"
-                    d={`
-                  M ${circlePoints.x} ${circlePoints.y}
-                  Q ${anchorSpiralPoints.x} ${anchorSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
-                  `}
-                  />
-                </g>
+                <>
+                  {!debug && (
+                    <g key={k} style={{ clipPath: `url(#clip-${endAngle})` }}>
+                      <path
+                        stroke={colorScale(k)}
+                        strokeWidth={0.75}
+                        strokeOpacity={lineOpacity}
+                        fill="transparent"
+                        d={`
+                          M ${circlePoints.x} ${circlePoints.y}
+                          Q ${anchorSpiralPoints.x} ${anchorSpiralPoints.y} ${spiralPoints.x} ${spiralPoints.y}
+                        `}
+                      />
+                    </g>
+                  )}
+                </>
               )
             })}
           </g>
