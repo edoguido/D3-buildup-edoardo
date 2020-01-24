@@ -47,9 +47,9 @@ export default function SpiralMultiples(props) {
   // svg constants
   const [margin] = useState({
     top: 80,
-    right: 220,
-    bottom: 120,
-    left: 40,
+    right: 180,
+    bottom: 40,
+    left: 60,
   })
   const [width] = useState(2880)
   const [height] = useState(840)
@@ -71,13 +71,13 @@ export default function SpiralMultiples(props) {
   const axisBottomLabelsPadding = 12
   //
   // legend
-  const legendPadding = {
+  const legendMargin = {
     top: 0,
-    right: 40,
+    right: 80,
     bottom: 40,
-    left: 80,
+    left: 180,
   }
-  const legendWidth = 240 + legendPadding.left + legendPadding.right
+  const legendWidth = 240 + legendMargin.left + legendMargin.right
   const legendEntryHeight = fontSize * 1.8
   const legendSymbolSize = 6
   //
@@ -85,15 +85,15 @@ export default function SpiralMultiples(props) {
   const colorScheme = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
   const xScale = d3
     .scaleLinear()
-    .range([0, width - margin.right - margin.left])
+    .range([0, width - margin.right])
     .domain([0, dataset.length])
   const yScale = d3
     .scaleLinear()
-    .range([height - margin.bottom, margin.top])
+    .range([height - margin.bottom, 0])
     .domain(d3.extent(dataset, d => d.bpm))
 
   const yScaleTicks = yScale.ticks()
-  const yScaleAxisTitlePadding = 12
+  const yScaleAxisTitlePadding = 16
   const yScaleWidth = 30 + yScaleAxisTitlePadding
 
   //
@@ -126,8 +126,8 @@ export default function SpiralMultiples(props) {
         </g> */}
         <g
           className="legend"
-          transform={`translate(${width - margin.right + legendPadding.left}, ${margin.top +
-            legendPadding.top})`}
+          transform={`translate(${width - margin.right + legendMargin.left}, ${margin.top +
+            legendMargin.top})`}
         >
           <text fontSize={fontSize * 2.5}>Genres</text>
           {differentGenres.map((legendEntry, j) => {
@@ -150,12 +150,12 @@ export default function SpiralMultiples(props) {
         </g>
         <g
           className="y-axis"
-          transform={`translate(${margin.left - yScaleWidth + yScaleAxisTitlePadding}, ${
-            margin.top
-          })`}
+          transform={`translate(${margin.left -
+            yScaleWidth +
+            yScaleAxisTitlePadding}, ${margin.top - margin.bottom})`}
         >
-          <text className="y-axis title" transform={`rotate(-90)`} textAnchor="end">
-            BPM
+          <text className="y-axis title" transform={`rotate(-90)`} textAnchor="end" dy="0">
+            Beats Per Minute
           </text>
           <line stroke="black" opacity="1" x1={yScaleWidth} y1="0" x2={yScaleWidth} y2={height} />
           {yScaleTicks.reverse().map((tick, i) => {
@@ -191,7 +191,7 @@ export default function SpiralMultiples(props) {
             const color = ['#ffffff', colorScheme(differentGenres.indexOf(datum.genre))]
             return (
               <g key={i}>
-                <g transform={`translate(${xScale(i)}, ${yScale(datum.bpm)})`}>
+                <g transform={`translate(${xScale(i)}, ${yScale(datum.bpm) - margin.bottom})`}>
                   <line
                     stroke="black"
                     opacity="0.25"
@@ -211,7 +211,8 @@ export default function SpiralMultiples(props) {
                 </g>
                 <g
                   transform={`translate(${xScale(i) - fontSize / 2}, ${height +
-                    axisBottomLabelsPadding}) rotate(45)`}
+                    axisBottomLabelsPadding -
+                    margin.bottom}) rotate(45)`}
                   fontSize={`${fontSize}px`}
                 >
                   <text y={fontSize * lineHeight * 0} fontWeight="500">

@@ -20,6 +20,10 @@ h1 {
   margin: 32px;
 }
 
+svg {
+  overflow: visible;
+}
+
 /* set both chart containers properties */
 /* D3 version */
 #chart,
