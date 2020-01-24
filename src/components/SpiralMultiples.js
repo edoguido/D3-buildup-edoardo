@@ -21,7 +21,8 @@ export default function SpiralMultiples(props) {
   const [debug, setDebug] = useState(false)
   useEffect(() => {
     window.addEventListener('keypress', e => {
-      if (e.key === 'd') {
+      console.log(e)
+      if (e.code === 'KeyD' && e.altKey === true && e.repeat === false && e.isComposing === false) {
         setDebug(prevState => !prevState)
       }
     })
