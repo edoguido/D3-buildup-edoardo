@@ -134,7 +134,7 @@ export function SpiralShell(props) {
               spiralPoints = spiral(internalRadius + START_RADIUS, subModulusAngle, GROWING_FACTOR)
 
               return (
-                <>
+                <g key={k}>
                   {!debug && (
                     <g key={k} style={{ clipPath: `url(#clip-${endAngle})` }}>
                       <path
@@ -149,7 +149,7 @@ export function SpiralShell(props) {
                       />
                     </g>
                   )}
-                </>
+                </g>
               )
             })}
           </g>

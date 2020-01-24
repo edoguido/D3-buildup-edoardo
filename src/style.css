@@ -20,14 +20,6 @@ h1 {
   margin: 32px;
 }
 
-svg {
-  border: 1px solid black;
-}
-
-svg > g {
-  border: 1px solid gray;
-}
-
 /* set both chart containers properties */
 /* D3 version */
 #chart,

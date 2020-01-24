@@ -38,7 +38,7 @@ export default function SpiralMultiples(props) {
   //     spiralAngle: song.length,
   //   }
   // })
-  const datasetColumnNames = ['Genre', 'BPM', 'Loudness', 'Song Length']
+  const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
   //
   // convert a discrete scale in a continuous one
   const differentGenres = numberOfDistinctElements(dataset, 'genre')
@@ -53,7 +53,7 @@ export default function SpiralMultiples(props) {
   })
   const [width] = useState(2880)
   const [height] = useState(840)
-  const [viewBox] = useState([0, 0, width + margin.right, height + margin.bottom])
+  const [viewBox] = useState([0, 0, width + margin.right, height])
 
   //
   // graph constants
@@ -71,7 +71,13 @@ export default function SpiralMultiples(props) {
   const axisBottomLabelsPadding = 12
   //
   // legend
-  const legendWidth = 240
+  const legendPadding = {
+    top: 0,
+    right: 40,
+    bottom: 40,
+    left: 80,
+  }
+  const legendWidth = 240 + legendPadding.left + legendPadding.right
   const legendEntryHeight = fontSize * 1.8
   const legendSymbolSize = 6
   //
@@ -79,12 +85,16 @@ export default function SpiralMultiples(props) {
   const colorScheme = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
   const xScale = d3
     .scaleLinear()
-    .range([0, width - margin.right])
+    .range([0, width - margin.right - margin.left])
     .domain([0, dataset.length])
   const yScale = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
     .domain(d3.extent(dataset, d => d.bpm))
+
+  const yScaleTicks = yScale.ticks()
+  const yScaleAxisTitlePadding = 12
+  const yScaleWidth = 30 + yScaleAxisTitlePadding
 
   //
   // trim string starting from next space
@@ -106,7 +116,7 @@ export default function SpiralMultiples(props) {
       <h2>Responsive spiral Chart with React and D3</h2>
       <svg width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMin meet">
         {/* <g className="legend" transform={`translate(0, ${margin.top})`}>
-          {datasetColumnNames.map((legendEntry, j) => {
+          {legendEntries.map((legendEntry, j) => {
             return (
               <g key={j} transform={`translate(${legendEntryWidth * j}, 0)`}>
                 <text x={legendRectSize * 1.5}>{legendEntry}</text>
@@ -114,10 +124,10 @@ export default function SpiralMultiples(props) {
             )
           })}
         </g> */}
-
         <g
           className="legend"
-          transform={`translate(${margin.left + legendSymbolSize}, ${margin.top})`}
+          transform={`translate(${width - margin.right + legendPadding.left}, ${margin.top +
+            legendPadding.top})`}
         >
           <text fontSize={fontSize * 2.5}>Genres</text>
           {differentGenres.map((legendEntry, j) => {
@@ -125,7 +135,7 @@ export default function SpiralMultiples(props) {
               <g key={j} transform={`translate(0, ${legendEntryHeight * (j + 2)})`}>
                 <circle
                   fill={colorScheme(j)}
-                  cx={legendSymbolSize / 2}
+                  cx="0"
                   cy={-legendSymbolSize}
                   r={legendSymbolSize / 2}
                 >
@@ -139,8 +149,43 @@ export default function SpiralMultiples(props) {
           })}
         </g>
         <g
+          className="y-axis"
+          transform={`translate(${margin.left - yScaleWidth + yScaleAxisTitlePadding}, ${
+            margin.top
+          })`}
+        >
+          <text className="y-axis title" transform={`rotate(-90)`} textAnchor="end">
+            BPM
+          </text>
+          <line stroke="black" opacity="1" x1={yScaleWidth} y1="0" x2={yScaleWidth} y2={height} />
+          {yScaleTicks.reverse().map((tick, i) => {
+            const tickLabelYOffset = (height / yScaleTicks.length) * i
+            return (
+              <g
+                key={i}
+                className="y-axis tick"
+                transform={`translate(${yScaleWidth}, 
+              ${tickLabelYOffset})`}
+              >
+                <text fontSize={fontSize} textAnchor="end" x={-fontSize - 4} dy={fontSize / 2.5}>
+                  {tick}
+                </text>
+                <line stroke="black" opecity="1" x1={-fontSize} y1="0" x2="0" y2="0" />
+              </g>
+            )
+          })}
+          <line
+            stroke="black"
+            opecity="1"
+            x1={-fontSize + yScaleWidth}
+            y1={height}
+            x2={yScaleWidth}
+            y2={height}
+          />
+        </g>
+        <g
           className="chart-area"
-          transform={`translate(${margin.left + legendWidth}, ${margin.top})`}
+          transform={`translate(${margin.left + yScaleWidth * 1.5}, ${margin.top})`}
         >
           {dataset.map((datum, i) => {
             const color = ['#ffffff', colorScheme(differentGenres.indexOf(datum.genre))]
@@ -151,7 +196,7 @@ export default function SpiralMultiples(props) {
                     stroke="black"
                     opacity="0.25"
                     x1="0"
-                    y1={height - yScale(datum.bpm) - margin.bottom / 2}
+                    y1={height - yScale(datum.bpm)}
                     x2="0"
                     y2={spiralInternalRadius}
                   />
@@ -165,8 +210,7 @@ export default function SpiralMultiples(props) {
                   />
                 </g>
                 <g
-                  transform={`translate(${xScale(i) - fontSize / 2}, ${height -
-                    margin.bottom / 2 +
+                  transform={`translate(${xScale(i) - fontSize / 2}, ${height +
                     axisBottomLabelsPadding}) rotate(45)`}
                   fontSize={`${fontSize}px`}
                 >
