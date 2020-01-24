@@ -1,3 +1,6 @@
 {
-  "extends": "eslint-config-accurapp"
+  "extends": "eslint-config-accurapp",
+  "rules": {
+    "indent": 0
+  }
 }
