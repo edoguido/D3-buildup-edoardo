@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import * as d3 from 'd3'
+import { Range } from 'rc-slider'
+import 'rc-slider/assets/index.css'
 import dirtyDataset from '../data/top50.json'
 import { SpiralShell } from './SpiralShell'
-import { numberOfDistinctElements } from '../lib/helpers'
+import { YAxis } from './YAxis'
+import { Legend } from './Legend'
+import { numberOfDistinctElements, trimLongString } from '../lib/helpers'
 
 function cleanData(dataset) {
   return dataset.map((datum, i) => {
@@ -21,7 +25,6 @@ export default function SpiralMultiples(props) {
   const [debug, setDebug] = useState(false)
   useEffect(() => {
     window.addEventListener('keypress', e => {
-      console.log(e)
       if (e.code === 'KeyD' && e.altKey === true && e.repeat === false && e.isComposing === false) {
         setDebug(prevState => !prevState)
       }
@@ -30,15 +33,6 @@ export default function SpiralMultiples(props) {
 
   const dataset = cleanData(dirtyDataset)
 
-  // rename desired dataset columns to chart-specific properties
-  // const dataset = sourceDataset.map((song, i) => {
-  //   return {
-  //     spiralColor: song.genre,
-  //     spiralYCoord: song.bpm,
-  //     spiralRadius: song.loudness,
-  //     spiralAngle: song.length,
-  //   }
-  // })
   const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
   //
   // convert a discrete scale in a continuous one
@@ -47,21 +41,39 @@ export default function SpiralMultiples(props) {
   //
   // svg constants
   const [margin] = useState({
-    top: 80,
-    right: 180,
-    bottom: 40,
+    top: 60,
+    right: 130,
+    bottom: 100,
     left: 60,
   })
-  const [width] = useState(2880)
-  const [height] = useState(840)
-  const [viewBox] = useState([0, 0, width + margin.right, height])
+  const [width] = useState(2160)
+  const [height] = useState(960)
+  const [viewBox] = useState([0, 0, width + margin.right, height + margin.bottom])
+
+  //
+  // scales
+  const colorScheme = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
+  const xScale = d3
+    .scalePoint()
+    .domain(dataset.map(datum => datum.track))
+    .range([0, width - margin.right])
+
+  const [datasetYScaleMin, datasetYScaleMax] = d3.extent(dataset, d => d.bpm)
+  const [yRange, setYRange] = useState([datasetYScaleMin, datasetYScaleMax])
+  const yScale = d3
+    .scaleLinear()
+    .domain([d3.min(dataset, d => d.bpm) - 10, d3.max(dataset, d => d.bpm)])
+    .range([height - margin.bottom, 0])
+
+  const yAxisTitlePadding = 16
+  const yAxisWidth = 30 + yAxisTitlePadding
 
   //
   // graph constants
   // chart
   const spiralInternalRadius = 10
   const spiralMaxAngle = d3.max(dataset, d => d.songLength)
-  const spiralLinesCount = 240
+  const spiralLinesCount = 120
   //
   // texts
   const fontSize = 10
@@ -76,128 +88,86 @@ export default function SpiralMultiples(props) {
     top: 0,
     right: 80,
     bottom: 40,
-    left: 180,
+    left: 120,
   }
-  const legendWidth = 240 + legendMargin.left + legendMargin.right
-  const legendEntryHeight = fontSize * 1.8
-  const legendSymbolSize = 6
-  //
-  // scales
-  const colorScheme = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
-  const xScale = d3
-    .scaleLinear()
-    .range([0, width - margin.right])
-    .domain([0, dataset.length])
-  const yScale = d3
-    .scaleLinear()
-    .range([height - margin.bottom, 0])
-    .domain(d3.extent(dataset, d => d.bpm))
-
-  const yScaleTicks = yScale.ticks()
-  const yScaleAxisTitlePadding = 16
-  const yScaleWidth = 30 + yScaleAxisTitlePadding
-
-  //
-  // trim string starting from next space
-  const trimLongString = (str, maxLength) => {
-    if (str.length > maxLength) {
-      const sliced = str.slice(0, maxLength)
-      const lastSpacePosition = sliced.lastIndexOf(' ')
-      return `${sliced.slice(0, lastSpacePosition)}...`
-    } else return str
-  }
-
   //
   // axes
   // const xAxis = d3.axisBottom(xScale)
   // const yAxis = d3.axisLeft(yScale)
 
   return (
-    <div className="chart">
-      <h2>Responsive spiral Chart with React and D3</h2>
-      <svg width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMin meet">
-        {/* <g className="legend" transform={`translate(0, ${margin.top})`}>
-          {legendEntries.map((legendEntry, j) => {
-            return (
-              <g key={j} transform={`translate(${legendEntryWidth * j}, 0)`}>
-                <text x={legendRectSize * 1.5}>{legendEntry}</text>
-              </g>
-            )
-          })}
-        </g> */}
-        <g
-          className="legend"
-          transform={`translate(${width - margin.right + legendMargin.left}, ${margin.top +
-            legendMargin.top})`}
+    <div className="chart" style={{ display: 'flex', flexDirection: 'row' }}>
+      <div
+        style={{
+          margin: '36px 16px 0px 16px',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+        }}
+      >
+        <div
+          style={{
+            height: '120px',
+            margin: '12px 24px 0px 0px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
         >
-          <text fontSize={fontSize * 2.5}>Genres</text>
-          {differentGenres.map((legendEntry, j) => {
-            return (
-              <g key={j} transform={`translate(0, ${legendEntryHeight * (j + 2)})`}>
-                <circle
-                  fill={colorScheme(j)}
-                  cx="0"
-                  cy={-legendSymbolSize}
-                  r={legendSymbolSize / 2}
-                >
-                  {legendEntry}
-                </circle>
-                <text x={legendSymbolSize * 1.5} fontSize={fontSize * 1.5}>
-                  {legendEntry}
-                </text>
-              </g>
-            )
-          })}
-        </g>
-        <g
-          className="y-axis"
-          transform={`translate(${margin.left -
-            yScaleWidth +
-            yScaleAxisTitlePadding}, ${margin.top - margin.bottom})`}
-        >
-          <text className="y-axis title" transform={`rotate(-90)`} textAnchor="end" dy="0">
-            Beats Per Minute
-          </text>
-          <line stroke="black" opacity="1" x1={yScaleWidth} y1="0" x2={yScaleWidth} y2={height} />
-          {yScaleTicks.reverse().map((tick, i) => {
-            const tickLabelYOffset = (height / yScaleTicks.length) * i
-            return (
-              <g
-                key={i}
-                className="y-axis tick"
-                transform={`translate(${yScaleWidth}, 
-              ${tickLabelYOffset})`}
-              >
-                <text fontSize={fontSize} textAnchor="end" x={-fontSize - 4} dy={fontSize / 2.5}>
-                  {tick}
-                </text>
-                <line stroke="black" opecity="1" x1={-fontSize} y1="0" x2="0" y2="0" />
-              </g>
-            )
-          })}
-          <line
-            stroke="black"
-            opecity="1"
-            x1={-fontSize + yScaleWidth}
-            y1={height}
-            x2={yScaleWidth}
-            y2={height}
+          <span>{yRange[0]}</span>
+          <span> | </span>
+          <span>{yRange[1]}</span>
+        </div>
+        <div style={{ height: '240px', margin: '12px 32px 0px 0px' }}>
+          <Range
+            min={datasetYScaleMin}
+            max={datasetYScaleMax}
+            defaultValue={[datasetYScaleMin, datasetYScaleMax]}
+            step={1}
+            allowCross={false}
+            pushable={10}
+            vertical={true}
+            reverse={true}
+            onAfterChange={range => setYRange(range)}
           />
-        </g>
+        </div>
+      </div>
+      <svg
+        width={width}
+        /* height={height} */ viewBox={viewBox}
+        preserveAspectRatio="xMidYMin meet"
+      >
+        <Legend
+          title={'Genres'}
+          entries={differentGenres}
+          fontSize={fontSize}
+          color={colorScheme}
+          transform={`translate(${width + legendMargin.left - margin.right}, ${margin.top +
+            legendMargin.top})`}
+        />
+        <YAxis
+          ticks={yScale.ticks()}
+          width={yAxisWidth}
+          svgHeight={height}
+          margins={margin}
+          fontSize={fontSize}
+          transform={`translate(${margin.left - yAxisWidth + yAxisTitlePadding}, ${margin.top})`}
+        />
         <g
           className="chart-area"
-          transform={`translate(${margin.left + yScaleWidth * 1.5}, ${margin.top})`}
+          transform={`translate(${margin.left + yAxisWidth * 1.5}, ${margin.top})`}
         >
           {dataset.map((datum, i) => {
             const color = ['#ffffff', colorScheme(differentGenres.indexOf(datum.genre))]
             return (
-              <g key={i}>
-                <g transform={`translate(${xScale(i)}, ${yScale(datum.bpm) - margin.bottom})`}>
+              <g key={i} opacity={datum.bpm >= yRange[0] && datum.bpm <= yRange[1] ? 1 : 0.1}>
+                <g transform={`translate(${xScale(datum.track)}, ${yScale(datum.bpm)})`}>
                   <line
                     stroke="black"
                     opacity="0.25"
                     x1="0"
-                    y1={height - yScale(datum.bpm)}
+                    y1={height - yScale(datum.bpm) - margin.bottom}
                     x2="0"
                     y2={spiralInternalRadius}
                   />
@@ -211,7 +181,7 @@ export default function SpiralMultiples(props) {
                   />
                 </g>
                 <g
-                  transform={`translate(${xScale(i) - fontSize / 2}, ${height +
+                  transform={`translate(${xScale(datum.track) - fontSize / 2}, ${height +
                     axisBottomLabelsPadding -
                     margin.bottom}) rotate(45)`}
                   fontSize={`${fontSize}px`}
@@ -219,7 +189,7 @@ export default function SpiralMultiples(props) {
                   <text y={fontSize * lineHeight * 0} fontWeight="500">
                     {trimLongString(datum.track, maxStringLength)}
                   </text>
-                  <text y={fontSize * lineHeight * 1}>
+                  <text y={fontSize * lineHeight * 1} fontWeight="300">
                     {trimLongString(datum.artist, maxStringLength)}
                   </text>
                 </g>

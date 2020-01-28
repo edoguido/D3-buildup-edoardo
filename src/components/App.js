@@ -16,6 +16,7 @@ export class App extends React.Component {
             Top 50 Spotify Songs - 2019
           </a>
         </span>
+        <h2>Responsive spiral Chart with React and D3</h2>
         <SpiralMultiples />
       </>
     )
