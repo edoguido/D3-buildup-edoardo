@@ -87,9 +87,11 @@ export function SpiralShell(props) {
     }
   })
 
+  const clipPathId = `clip-${endAngle}`
+
   return (
     <g className="spiral">
-      <clipPath id={`clip-${endAngle}`}>
+      <clipPath id={clipPathId}>
         <path
           d={`
             M 0 ${START_RADIUS}
@@ -152,7 +154,7 @@ export function SpiralShell(props) {
                 M ${innerX} ${innerY}
                 Q ${controlX} ${controlY} ${spiralX} ${spiralY}
               `,
-            style: `clipPath: url(#clip-${endAngle})`,
+            style: `clip-path: url(#${clipPathId})`,
             stroke: (d, i) => colorScale(i % modulusLinesCount),
             'stroke-width': 0.35,
             'stroke-opacity': debug ? 0.35 : 1,

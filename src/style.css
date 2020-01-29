@@ -1,3 +1,7 @@
+:root {
+  --bg: rgb(245, 245, 245);
+}
+
 body {
   padding: 32px;
 }
@@ -5,7 +9,7 @@ body {
 @media (prefers-color-scheme: light) {
   body {
     color: black;
-    background-color: rgb(245, 245, 245);
+    background-color: var(--bg);
   }
 }
 

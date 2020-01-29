@@ -5790,6 +5790,11 @@ kind-of@^6.0.0, kind-of@^6.0.2:
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-6.0.2.tgz#01146b36a6218e64e58f3a8d66de5d7fc6f6d051"
   integrity sha512-s5kLOcnH0XqDO+FvuaLX8DDjZ18CGFk7VygH40QoKPUQhW4e2rvM0rwUq0t8IQDOwYSeLK01U90OjzBTme2QqA==
 
+konva@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/konva/-/konva-4.1.2.tgz#b0718ae02539866ff9d4897dec42d2fb58dc3812"
+  integrity sha512-1r2H85gzCY25Rcr0csfrtABWWaV2HjeFkO4zvkvy6sJrWLit2GJyX3rdQYEw7B8q3jKqccEGdYjxr7oa2st4Qg==
+
 latest-version@5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-5.1.0.tgz#119dfe908fe38d15dfa43ecd13fa12ec8832face"
