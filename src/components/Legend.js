@@ -2,9 +2,12 @@ import React from 'react'
 
 const legendSymbolSize = 6
 
-export function Legend(props) {
+export const Legend = React.memo(function Legend(props) {
   const { title, entries, fontSize, color: colorScheme, transform } = props
   const legendEntryHeight = fontSize * 1.8
+
+  console.log('___RENDERING Legend')
+
   return (
     <g className="legend" transform={transform}>
       <text fontSize={fontSize * 2.2}>{title}</text>
@@ -22,4 +25,4 @@ export function Legend(props) {
       })}
     </g>
   )
-}
+})

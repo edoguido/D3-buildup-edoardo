@@ -1,8 +1,9 @@
 import React from 'react'
 
 export function RangeDisplay(props) {
-  const { x, /* y, */ width, height, rangeStart, rangeEnd } = props
+  const { x, width, height, range, rangeFn } = props
 
+  console.log('___RENDERING RangeDisplay')
   return (
     <g className="range-display">
       <line
@@ -10,34 +11,36 @@ export function RangeDisplay(props) {
         strokeOpacity="0.25"
         strokeWidth="1"
         x1={x}
-        y1={rangeStart}
+        y1={rangeFn(range[1])}
         x2={width}
-        y2={rangeStart}
+        y2={rangeFn(range[1])}
       />
       <line
         stroke={'black'}
-        opacity="0.25"
+        strokeOpacity="0.25"
         strokeWidth="1"
         x1={x}
-        y1={rangeEnd}
+        y1={rangeFn(range[0])}
         x2={width}
-        y2={rangeEnd}
+        y2={rangeFn(range[0])}
       />
       <rect
+        // fill={'lightgray'}
         fill={'url(#pattern-circles)'}
         fillOpacity={1}
         x={x}
         y={0}
         width={width + Math.abs(x)}
-        height={rangeStart}
+        height={rangeFn(range[1])}
       />
       <rect
+        // fill={'lightgray'}
         fill={'url(#pattern-circles)'}
         fillOpacity={1}
         x={x}
-        y={rangeEnd}
+        y={rangeFn(range[0])}
         width={width + Math.abs(x)}
-        height={height - rangeEnd}
+        height={height - rangeFn(range[0])}
       />
       <pattern
         id="pattern-circles"

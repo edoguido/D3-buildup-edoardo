@@ -89,6 +89,8 @@ export function SpiralShell(props) {
 
   const clipPathId = `clip-${endAngle}`
 
+  console.log('___RENDERING SpiralShell')
+
   return (
     <g className="spiral">
       <clipPath id={clipPathId}>
@@ -134,10 +136,9 @@ export function SpiralShell(props) {
           })}
         </>
       )}{' '}
-      <line />
-      <circle opacity="1" fill={color[color.length - 1]} cx="0" cy="0" r={CIRCLE_RADIUS} />
+      <circle fill={color[color.length - 1]} cx="0" cy="0" r={CIRCLE_RADIUS} />
       <g className="spiral-lines">
-        <AnimatedDataset
+        {/* <AnimatedDataset
           dataset={spiralPointsArray}
           tag="path"
           init={{ opacity: 0 }}
@@ -162,7 +163,7 @@ export function SpiralShell(props) {
             opacity: 1,
           }}
           keyFn={(d, i) => i}
-        />
+        /> */}
         {spiralPointsArray.map(
           (
             {
@@ -175,18 +176,18 @@ export function SpiralShell(props) {
           ) => {
             return (
               <g key={i}>
-                {/* <path
+                <path
                   key={i}
                   style={{ clipPath: `url(#clip-${endAngle})` }}
                   stroke={colorScale(i % modulusLinesCount)}
-                  strokeWidth={0.35}
-                  strokeOpacity={debug ? 0.35 : lineOpacity}
+                  // strokeWidth={0.35}
+                  // strokeOpacity={debug ? 0.35 : lineOpacity}
                   fill="none"
                   d={`
                 M ${innerX} ${innerY}
                 Q ${controlX} ${controlY} ${spiralX} ${spiralY}
               `}
-                /> */}
+                />
                 <g>
                   {debug && (
                     <>
