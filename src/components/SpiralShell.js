@@ -1,6 +1,7 @@
 import React from 'react'
 import { times } from 'lodash-es'
 import * as d3 from 'd3'
+import { Group, Circle, Path } from 'react-konva'
 import { AnimatedDataset } from 'react-animated-dataset'
 import { circle, spiral } from '../lib/curveEquations'
 import { opacityModulus } from '../lib/helpers'
@@ -15,7 +16,7 @@ const MIN_OPACITY = 0.25
 const MAX_OPACITY = 1
 const MASK_ANCHOR_FACTOR = 1.2
 
-export function SpiralShell(props) {
+function SpiralShellComp(props) {
   const {
     debug,
     color,
@@ -29,33 +30,33 @@ export function SpiralShell(props) {
   const moduliCount = DOUBLE_PI / modulus
   const modulusLinesCount = totalLinesCount / moduliCount
   const angleUnit = DOUBLE_PI / totalLinesCount
-
+  console.log('redende')
   const colorScale = d3
     .scaleLinear()
     .domain([1, modulusLinesCount])
-    .interpolate(d3.interpolateHcl)
+    // .interpolate(d3.interpolateHcl)
     .range(color.map(c => d3.rgb(c)))
 
-  const maskPoints = times(moduliCount + 1).map(j => {
-    const angle = (DOUBLE_PI / moduliCount) * j
-    const bezierControlPointShiftAmount = modulus / 2
-    const spiralPoints = spiral(internalRadius + START_RADIUS, angle, GROWING_FACTOR)
-    const spiralControlPoints = spiral(
-      internalRadius + START_RADIUS,
-      angle - bezierControlPointShiftAmount,
-      GROWING_FACTOR / MASK_ANCHOR_FACTOR
-    )
-    return {
-      point: {
-        x: spiralPoints.x,
-        y: spiralPoints.y,
-      },
-      control: {
-        x: spiralControlPoints.x,
-        y: spiralControlPoints.y,
-      },
-    }
-  })
+  // const maskPoints = times(moduliCount + 1).map(j => {
+  //   const angle = (DOUBLE_PI / moduliCount) * j
+  //   const bezierControlPointShiftAmount = modulus / 2
+  //   const spiralPoints = spiral(internalRadius + START_RADIUS, angle, GROWING_FACTOR)
+  //   const spiralControlPoints = spiral(
+  //     internalRadius + START_RADIUS,
+  //     angle - bezierControlPointShiftAmount,
+  //     GROWING_FACTOR / MASK_ANCHOR_FACTOR
+  //   )
+  //   return {
+  //     point: {
+  //       x: spiralPoints.x,
+  //       y: spiralPoints.y,
+  //     },
+  //     control: {
+  //       x: spiralControlPoints.x,
+  //       y: spiralControlPoints.y,
+  //     },
+  //   }
+  // })
 
   const spiralPointsArray = times(linesCount).map(i => {
     const angle = angleUnit * i
@@ -90,8 +91,8 @@ export function SpiralShell(props) {
   const clipPathId = `clip-${endAngle}`
 
   return (
-    <g className="spiral">
-      <clipPath id={clipPathId}>
+    <Group className="spiral">
+      {/* <clipPath id={clipPathId}>
         <path
           d={`
             M 0 ${START_RADIUS}
@@ -133,11 +134,10 @@ export function SpiralShell(props) {
             )
           })}
         </>
-      )}{' '}
-      <line />
-      <circle opacity="1" fill={color[color.length - 1]} cx="0" cy="0" r={CIRCLE_RADIUS} />
-      <g className="spiral-lines">
-        <AnimatedDataset
+      )}{' '} */}
+      <Circle opacity="1" fill={color[color.length - 1]} x="0" y="0" radius={CIRCLE_RADIUS} />
+      <Group>
+        {/* <AnimatedDataset
           dataset={spiralPointsArray}
           tag="path"
           init={{ opacity: 0 }}
@@ -162,7 +162,7 @@ export function SpiralShell(props) {
             opacity: 1,
           }}
           keyFn={(d, i) => i}
-        />
+        /> */}
         {spiralPointsArray.map(
           (
             {
@@ -174,20 +174,20 @@ export function SpiralShell(props) {
             i
           ) => {
             return (
-              <g key={i}>
-                {/* <path
-                  key={i}
-                  style={{ clipPath: `url(#clip-${endAngle})` }}
+              <Group key={i}>
+                <Path
+                  // style={{ clipPath: `url(#clip-${endAngle})` }}
                   stroke={colorScale(i % modulusLinesCount)}
                   strokeWidth={0.35}
-                  strokeOpacity={debug ? 0.35 : lineOpacity}
-                  fill="none"
-                  d={`
-                M ${innerX} ${innerY}
-                Q ${controlX} ${controlY} ${spiralX} ${spiralY}
-              `}
-                /> */}
-                <g>
+                  opacity={debug ? 0.35 : lineOpacity}
+                  fill="transparent"
+                  perfectDrawEnabled={false}
+                  data={`
+                    M ${innerX} ${innerY}
+                    Q ${controlX} ${controlY} ${spiralX} ${spiralY}
+                  `}
+                />
+                {/* <g>
                   {debug && (
                     <>
                       <line
@@ -212,12 +212,14 @@ export function SpiralShell(props) {
                       <circle opacity="1" fill="blue" cx={spiralX} cy={spiralY} r="1.5" />
                     </>
                   )}{' '}
-                </g>
-              </g>
+                </g> */}
+              </Group>
             )
           }
         )}
-      </g>
-    </g>
+      </Group>
+    </Group>
   )
 }
+
+export const SpiralShell = React.memo(SpiralShellComp)

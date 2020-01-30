@@ -37,6 +37,7 @@
     "react": "^16.12.0",
     "react-animated-dataset": "^0.0.2",
     "react-dom": "^16.12.0",
+    "react-konva": "^16.12.0-0",
     "tachyons-extra": "^1.1.3"
   }
 }

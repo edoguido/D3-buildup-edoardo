@@ -1,25 +1,27 @@
 import React from 'react'
+import { Group, Text, Circle } from 'react-konva'
 
 const legendSymbolSize = 6
 
-export function Legend(props) {
-  const { title, entries, fontSize, color: colorScheme, transform } = props
+export function Legend({ title, entries, fontSize, color: colorScheme, ...props }) {
   const legendEntryHeight = fontSize * 1.8
   return (
-    <g className="legend" transform={transform}>
-      <text fontSize={fontSize * 2.2}>{title}</text>
+    <Group className="legend" {...props}>
+      <Text fontSize={fontSize * 2.2} text={title} />
       {entries.map((legendEntry, j) => {
         return (
-          <g key={j} transform={`translate(0, ${legendEntryHeight * (j + 2)})`}>
-            <circle fill={colorScheme(j)} cx="0" cy={-legendSymbolSize} r={legendSymbolSize / 2}>
-              {legendEntry}
-            </circle>
-            <text x={legendSymbolSize * 1.5} fontSize={fontSize * 1.5}>
-              {legendEntry}
-            </text>
-          </g>
+          <Group key={j} x={0} y={legendEntryHeight * (j + 2)}>
+            <Circle
+              fill={colorScheme(j)}
+              x="0"
+              y={legendSymbolSize}
+              radius={legendSymbolSize / 2}
+            />
+
+            <Text x={legendSymbolSize * 1.5} fontSize={fontSize * 1.5} text={legendEntry} />
+          </Group>
         )
       })}
-    </g>
+    </Group>
   )
 }

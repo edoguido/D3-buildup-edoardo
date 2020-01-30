@@ -1,5 +1,6 @@
 import React from 'react'
 import SpiralMultiples from './SpiralMultiples'
+import SpiralMultiplesCanvas from './SpiralMultiplesCanvas'
 
 export class App extends React.Component {
   render() {
@@ -17,7 +18,8 @@ export class App extends React.Component {
           </a>
         </span>
         <h2>Responsive spiral Chart with React and D3</h2>
-        <SpiralMultiples />
+        {/* <SpiralMultiples /> */}
+        <SpiralMultiplesCanvas />
       </>
     )
   }

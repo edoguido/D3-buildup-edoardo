@@ -1,45 +1,41 @@
 import React from 'react'
-import { render } from 'react-dom'
+import { Group, Text, Line } from 'react-konva'
 
-export function YAxis(props) {
-  const {
-    title,
-    width = 48,
-    svgHeight,
-    margin = { top: 0, right: 0, bottom: 0, left: 0 },
-    fontSize = 10,
-    ticks,
-    transform,
-  } = props
-
+export function YAxis({
+  title,
+  width = 48,
+  svgHeight,
+  margin = { top: 0, right: 0, bottom: 0, left: 0 },
+  fontSize = 10,
+  ticks,
+  ...props
+}) {
   return (
-    <g className="y-axis" transform={transform}>
-      <text
-        className="y-axis title"
-        transform={`translate(${fontSize - width}, 0) rotate(-90)`}
-        textAnchor="end"
-        dy="0"
-      >
-        {title}
-      </text>
-      <line stroke="black" opacity="1" x1={0} y1={0} x2={0} y2={svgHeight} />
+    <Group className="y-axis" {...props}>
+      <Text
+        // className="y-axis title"
+        x={fontSize - width}
+        y={88}
+        rotation={-90}
+        text={title}
+      />
+
+      <Line stroke="black" points={[0, 0, 0, svgHeight]} />
       {ticks.reverse().map((tick, i) => {
         const tickLabelYOffset = (svgHeight / ticks.length) * i
         return (
-          <g
+          <Group
             key={i}
-            className="tick"
-            transform={`translate(0, 
-              ${tickLabelYOffset})`}
+            // className="tick"
+            x={0}
+            y={tickLabelYOffset}
           >
-            <text fontSize={fontSize} textAnchor="end" x={-fontSize - 4} dy={fontSize / 2.5}>
-              {tick}
-            </text>
-            <line stroke="black" opecity="1" x1={-fontSize} y1="0" x2="0" y2="0" />
-          </g>
+            <Text fontSize={fontSize} verticalAlign="middle" height={1} x={-30} text={tick} />
+            <Line stroke="black" points={[-fontSize, 0, 0, 0]} />
+          </Group>
         )
       })}
-      <line stroke="black" opecity="1" x1={-fontSize} y1={svgHeight} x2={0} y2={svgHeight} />
-    </g>
+      <Line stroke="black" points={[-fontSize, svgHeight, 0, svgHeight]} />
+    </Group>
   )
 }
