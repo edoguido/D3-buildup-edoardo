@@ -42,6 +42,12 @@ h1 {
   width: 100%;
 }
 
+.dataset-value {
+  color: #4499ff;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
 .debug {
   font-size: 0.9em;
   padding: 4px 6px;

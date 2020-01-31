@@ -1,5 +1,5 @@
 import React from 'react'
-import SpiralMultiples from './SpiralMultiples'
+// import SpiralMultiples from './SpiralMultiples'
 import SpiralMultiplesCanvas from './SpiralMultiplesCanvas'
 
 export class App extends React.Component {

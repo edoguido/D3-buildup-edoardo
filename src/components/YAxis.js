@@ -7,11 +7,12 @@ export function YAxis({
   svgHeight,
   margin = { top: 0, right: 0, bottom: 0, left: 0 },
   fontSize = 10,
-  ticks,
+  scale,
   ...props
 }) {
+  const ticks = scale.ticks()
   return (
-    <Group className="y-axis" {...props}>
+    <Group {...props}>
       <Text
         // className="y-axis title"
         x={fontSize - width}
@@ -20,7 +21,7 @@ export function YAxis({
         text={title}
       />
 
-      <Line stroke="black" points={[0, 0, 0, svgHeight]} />
+      <Line stroke={'black'} points={[0, 0, 0, svgHeight]} />
       {ticks.reverse().map((tick, i) => {
         const tickLabelYOffset = (svgHeight / ticks.length) * i
         return (
@@ -30,12 +31,12 @@ export function YAxis({
             x={0}
             y={tickLabelYOffset}
           >
-            <Text fontSize={fontSize} verticalAlign="middle" height={1} x={-30} text={tick} />
-            <Line stroke="black" points={[-fontSize, 0, 0, 0]} />
+            <Text fontSize={fontSize} verticalAlign={'middle'} height={1} x={-30} text={tick} />
+            <Line stroke={'black'} points={[-fontSize, 0, 0, 0]} />
           </Group>
         )
       })}
-      <Line stroke="black" points={[-fontSize, svgHeight, 0, svgHeight]} />
+      <Line stroke={'black'} points={[-fontSize, svgHeight, 0, svgHeight]} />
     </Group>
   )
 }

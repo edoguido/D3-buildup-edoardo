@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import * as d3 from 'd3'
+import { find } from 'lodash-es'
 import { Range } from 'rc-slider'
-import { Stage, Layer, Group, Line } from 'react-konva'
+import { Stage, Layer, Group, Line, Text } from 'react-konva'
 import 'rc-slider/assets/index.css'
 import { SpiralShell } from './SpiralShell'
 import { RangeDisplay } from './RangeDisplay'
 import { YAxis } from './YAxis'
 import { Legend } from './Legend'
-import { numberOfDistinctElements, trimLongString } from '../lib/helpers'
+import { numberOfDistinctElements, dataInRange, trimLongString } from '../lib/helpers'
 import dirtyDataset from '../data/top50.json'
 
 function cleanData(dataset) {
@@ -23,6 +24,72 @@ function cleanData(dataset) {
   })
 }
 
+const dataset = cleanData(dirtyDataset)
+
+// const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
+//
+// convert a discrete scale in a continuous one
+const differentGenres = numberOfDistinctElements(dataset, 'genre')
+
+//
+// sizes constants
+const MARGIN = {
+  top: 60,
+  right: 20,
+  bottom: 140,
+  left: 20,
+}
+// TODO use @vx/responsive
+const WIDTH = window.innerWidth - 300
+const HEIGHT = 960
+const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right
+const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom
+const CHART_PADDING = 40
+const LEGEND_WIDTH = 120
+const Y_AXIS_WIDTH = 60
+
+//
+// graph constants
+// chart
+const SPIRAL_INTERNAL_RADIUS = 10
+const SPIRAL_MAX_ANGLE = d3.max(dataset, d => d.songLength)
+const SPIRAL_LINES_COUNT = 160
+//
+// texts
+const FONT_SIZE = 10
+const LINE_HEIGHT = 1.2
+const MAX_STRING_LENGTH = 32
+//
+// bottom axis
+const X_AXIS_LABEL_PADDING = 24
+
+const CHART_AREA_WIDTH = INNER_WIDTH - Y_AXIS_WIDTH - LEGEND_WIDTH * 2
+const CHART_AREA_HEIGHT = INNER_HEIGHT - X_AXIS_LABEL_PADDING
+
+//
+// scales
+const X_SCALE = d3
+  .scalePoint()
+  .domain(dataset.map(datum => datum.track))
+  .range([0, CHART_AREA_WIDTH])
+
+const Y_SCALE = d3
+  .scaleLinear()
+  .domain([d3.min(dataset, d => d.bpm), d3.max(dataset, d => d.bpm)])
+  .range([CHART_AREA_HEIGHT, 0])
+const COLOR_SCHEME = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
+
+// FOR THE SCIENCE
+// const isInRange = inRange => (track, artist) => find(inRange, { track, artist })
+
+//
+//
+// *
+// ***
+// ****
+// *******
+// ***********
+// ***************
 export default function SpiralMultiples(props) {
   const [debug, setDebug] = useState(false)
   useEffect(() => {
@@ -33,278 +100,220 @@ export default function SpiralMultiples(props) {
     })
   }, [])
 
-  const [dataset, updateDataset] = useState(cleanData(dirtyDataset))
-
-  const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
   //
-  // convert a discrete scale in a continuous one
-  const differentGenres = numberOfDistinctElements(dataset, 'genre')
-
-  //
-  // sizes constants
-  const [margin] = useState({
-    top: 60,
-    right: 20,
-    bottom: 140,
-    left: 20,
-  })
-  // TODO use @vx/responsive
-  const [width] = useState(window.innerWidth - 166)
-  const [height] = useState(960)
-  const innerWidth = width - margin.left - margin.right
-  const innerHeight = height - margin.top - margin.bottom
-  const globalPadding = 40
-  const legendWidth = 120
-  const yAxisWidth = 60
-  const chartAreaWidth = innerWidth - yAxisWidth - legendWidth * 2
-  const chartAreaHeight = innerHeight
-
-  //
-  // scales
-  const colorScheme = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
-  const xScale = d3
-    .scalePoint()
-    .domain(dataset.map(datum => datum.track))
-    .range([0, chartAreaWidth])
-
-  //
-  // range selector
+  // for range selector
   const [datasetYScaleMin, datasetYScaleMax] = d3.extent(dataset, d => d.bpm)
   const [yRange, setYRange] = useState([datasetYScaleMin, datasetYScaleMax])
-
-  const yScale = d3
-    .scaleLinear()
-    .domain([d3.min(dataset, d => d.bpm), d3.max(dataset, d => d.bpm)])
-    .range([chartAreaHeight, 0])
-
-  //
-  // graph constants
-  // chart
-  const spiralInternalRadius = 10
-  const spiralMaxAngle = d3.max(dataset, d => d.songLength)
-  const spiralLinesCount = 120
-  //
-  // texts
-  const fontSize = 10
-  const lineHeight = 1.2
-  const maxStringLength = 32
-  //
-  // bottom axis
-  const axisBottomLabelsPadding = 12
-  //
-  // axes
-  // const xAxis = d3.axisBottom(xScale)
-  // const yAxis = d3.axisLeft(yScale)
+  const inRange = dataInRange(dataset, 'bpm', yRange)
+  const inRangeDifferentGenres = numberOfDistinctElements(inRange, 'genre')
+  const isInRange = ({ track, artist }) => find(inRange, { track, artist })
+  // const isInRange = (datun) => inRange.find(d => d.track === datum.track && d.artist === datum.artist)
 
   return (
     <div className="chart" style={{ display: 'flex', flexDirection: 'row' }}>
       <div
         className="controls"
         style={{
-          margin: '36px 16px 0px 16px',
+          margin: '36px 16px',
+          width: '200px',
           display: 'flex',
-          flexDirection: 'row',
+          flexDirection: 'column',
           alignItems: 'flex-start',
         }}
       >
         <div
           style={{
-            height: '120px',
-            width: '32px',
-            margin: '12px 24px 0px 0px',
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '.8em',
+            flexDirection: 'row',
+            marginBottom: '36px',
           }}
         >
-          <span>{yRange[1]}</span>
-          <span> | </span>
-          <span>{yRange[0]}</span>
+          <div
+            style={{
+              height: '120px',
+              width: '32px',
+              margin: '12px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: '.8em',
+            }}
+          >
+            <span>{yRange[1]}</span>
+            <span> | </span>
+            <span>{yRange[0]}</span>
+          </div>
+          <div style={{ height: '240px', margin: '12px 32px 0px 0px' }}>
+            <Range
+              min={datasetYScaleMin}
+              max={datasetYScaleMax}
+              defaultValue={[datasetYScaleMin, datasetYScaleMax]}
+              step={1}
+              allowCross={false}
+              pushable={10}
+              vertical={true}
+              reverse={false}
+              onChange={range => setYRange(range)}
+            />
+          </div>
         </div>
-        <div style={{ height: '240px', margin: '12px 32px 0px 0px' }}>
-          <Range
-            min={datasetYScaleMin}
-            max={datasetYScaleMax}
-            defaultValue={[datasetYScaleMin, datasetYScaleMax]}
-            step={1}
-            allowCross={false}
-            pushable={10}
-            vertical={true}
-            reverse={false}
-            onChange={range => setYRange(range)}
-          />
+        <div>
+          <span className="dataset-value">{inRange.length}</span> elements selected
+        </div>
+        <div>with a rhythm between </div>
+        <div>
+          <span className="dataset-value">{yRange[0]}</span> and{' '}
+          <span className="dataset-value">{yRange[1]}</span> BPM
         </div>
       </div>
-      <Stage width={width} height={height}>
+      <Stage width={WIDTH} height={HEIGHT}>
         <Layer>
           <Legend
             title={'Genres'}
             entries={differentGenres}
-            fontSize={fontSize}
-            color={colorScheme}
-            x={innerWidth - legendWidth}
-            y={margin.top}
+            entriesInRange={inRangeDifferentGenres}
+            fontSize={FONT_SIZE}
+            color={COLOR_SCHEME}
+            x={INNER_WIDTH - LEGEND_WIDTH}
+            y={MARGIN.top}
           />
 
           <YAxis
             title={'Beats Per Minute'}
-            ticks={yScale.ticks()}
-            width={yAxisWidth}
-            svgHeight={chartAreaHeight}
-            margin={margin}
-            fontSize={fontSize}
-            x={margin.left + yAxisWidth}
-            y={margin.top}
+            scale={Y_SCALE}
+            width={Y_AXIS_WIDTH}
+            svgHeight={CHART_AREA_HEIGHT}
+            margin={MARGIN}
+            fontSize={FONT_SIZE}
+            x={MARGIN.left + Y_AXIS_WIDTH}
+            y={MARGIN.top}
           />
+        </Layer>
 
-          <Group x={margin.left + yAxisWidth + globalPadding} y={margin.top}>
+        {/* <SpiralGroup debug={debug} isInRange={isInRange} /> */}
+        <Layer>
+          <Group x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING} y={MARGIN.top}>
+            {dataset.map(datum => {
+              // console.log('___RENDERING SpiralsGroup')
+
+              return (
+                <Group
+                  key={`${datum.artist}-${datum.track}`}
+                  x={X_SCALE(datum.track)}
+                  y={Y_SCALE(datum.bpm)}
+                  // onMouseOver={e => handleMouseEnter(e.currentTarget.index)}
+                  // onMouseOut={() => handleMouseOut()}
+                >
+                  <Line
+                    stroke={'black'}
+                    opacity={0.25}
+                    points={[0, CHART_AREA_HEIGHT - Y_SCALE(datum.bpm), 0, SPIRAL_INTERNAL_RADIUS]}
+                  />
+                </Group>
+              )
+            })}
+          </Group>
+        </Layer>
+        {dataset.map((datum, i) => {
+          // console.log('___RENDERING SpiralsGroup')
+
+          const color = ['#ffffff', COLOR_SCHEME(differentGenres.indexOf(datum.genre))]
+          // const hovering = highlightedIndex !== -1
+          // const isHovered = highlightedIndex === i
+          // const spiralOpacity = !hovering || isHovered ? 1 : 0.25
+          const spiralOpacity = isInRange(datum) ? 1 : 0.1
+
+          return (
+            <SpiralShell
+              key={`${datum.track}-${datum.artist}`}
+              debug={debug}
+              color={color}
+              angle={(datum.songLength / SPIRAL_MAX_ANGLE) * (2 * Math.PI)}
+              internalRadius={SPIRAL_INTERNAL_RADIUS}
+              modulus={Math.PI / 6}
+              linesCount={SPIRAL_LINES_COUNT}
+              x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING + X_SCALE(datum.track)}
+              y={MARGIN.top + Y_SCALE(datum.bpm)}
+              opacity={spiralOpacity}
+            />
+          )
+        })}
+
+        <XAxis range={yRange} />
+
+        <Layer>
+          <Group x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING} y={MARGIN.top}>
             <RangeDisplay
-              x={-globalPadding}
+              x={-CHART_PADDING}
               y={0}
-              width={chartAreaWidth}
-              height={chartAreaHeight}
-              rangeStart={yScale(yRange[1])}
-              rangeEnd={yScale(yRange[0])}
+              width={CHART_AREA_WIDTH}
+              height={CHART_AREA_HEIGHT}
+              rangeStart={Y_SCALE(yRange[1])}
+              rangeEnd={Y_SCALE(yRange[0])}
             />
           </Group>
         </Layer>
-
-        <Shells />
       </Stage>
     </div>
   )
 }
 
-function ShellsLayer() {
-  const dataset = cleanData(dirtyDataset)
+// function SpiralGroup({ debug, onHovered, isInRange }) {
+//   // const [highlightedIndex, setHighlightedIndex] = useState(-1)
 
-  const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
-  //
-  // convert a discrete scale in a continuous one
-  const differentGenres = numberOfDistinctElements(dataset, 'genre')
+//   // const handleMouseEnter = index => setHighlightedIndex(index)
+//   // const handleMouseOut = () => setHighlightedIndex(-1)
 
-  //
-  // sizes constants
-  const margin = {
-    top: 60,
-    right: 20,
-    bottom: 140,
-    left: 20,
-  }
+//   return (
+//   )
+// }
 
-  // TODO use @vx/responsive
-  const [width] = useState(window.innerWidth - 166)
-  const [height] = useState(960)
-  const innerWidth = width - margin.left - margin.right
-  const innerHeight = height - margin.top - margin.bottom
-  const globalPadding = 40
-  const legendWidth = 120
-  const yAxisWidth = 60
-  const chartAreaWidth = innerWidth - yAxisWidth - legendWidth * 2
-  const chartAreaHeight = innerHeight
-
-  //
-  // scales
-  const colorScheme = d3.scaleSequential(d3.interpolateSinebow).domain([0, differentGenres.length])
-  const xScale = d3
-    .scalePoint()
-    .domain(dataset.map(datum => datum.track))
-    .range([0, chartAreaWidth])
-
-  //
-  // range selector
-  const [datasetYScaleMin, datasetYScaleMax] = d3.extent(dataset, d => d.bpm)
-  const [yRange, setYRange] = useState([datasetYScaleMin, datasetYScaleMax])
-
-  const yScale = d3
-    .scaleLinear()
-    .domain([d3.min(dataset, d => d.bpm), d3.max(dataset, d => d.bpm)])
-    .range([chartAreaHeight, 0])
-
-  //
-  // graph constants
-  // chart
-  const spiralInternalRadius = 10
-  const spiralMaxAngle = d3.max(dataset, d => d.songLength)
-  const spiralLinesCount = 120
-  //
-  // texts
-  const fontSize = 10
-  const lineHeight = 1.2
-  const maxStringLength = 32
-  //
-  // bottom axis
-  const axisBottomLabelsPadding = 12
-  //
-  // axes
-  // const xAxis = d3.axisBottom(xScale)
-  // const yAxis = d3.axisLeft(yScale)
-
+const XAxis = React.memo(function XAxis({ range }) {
   return (
     <Layer>
-      <Group x={margin.left + yAxisWidth + globalPadding} y={margin.top}>
+      <Group
+        x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING}
+        y={MARGIN.top + CHART_AREA_HEIGHT + X_AXIS_LABEL_PADDING}
+      >
         {dataset.map((datum, i) => {
-          const color = ['#ffffff', colorScheme(differentGenres.indexOf(datum.genre))]
-          const inRange = datum.bpm >= yRange[0] && datum.bpm <= yRange[1] ? 1 : 0.25
+          const labelWidth = 400
+          const anchor = 'right'
+          const inRange = datum.bpm >= range[0] && datum.bpm <= range[1] ? 1 : 0.1
           return (
-            <Group key={i} opacity={inRange} x={xScale(datum.track)} y={yScale(datum.bpm)}>
-              <Line
-                stroke="black"
-                opacity="0.25"
-                points={[0, chartAreaHeight - yScale(datum.bpm), 0, spiralInternalRadius]}
+            <Group
+              key={i}
+              x={X_SCALE(datum.track) - FONT_SIZE / 2}
+              rotation={-45}
+              opacity={inRange}
+            >
+              <Text
+                width={labelWidth}
+                y={FONT_SIZE * LINE_HEIGHT * 0}
+                x={FONT_SIZE * 0 - labelWidth}
+                fontStyle={'bold'}
+                align={anchor}
+                text={trimLongString(datum.artist, MAX_STRING_LENGTH)}
               />
-              <Group opacity={inRange}>
-                <SpiralShell
-                  debug={false}
-                  color={color}
-                  angle={(datum.songLength / spiralMaxAngle) * (2 * Math.PI)}
-                  internalRadius={spiralInternalRadius}
-                  modulus={Math.PI / 6}
-                  linesCount={spiralLinesCount}
-                />
-              </Group>
+              <Text
+                width={labelWidth}
+                y={FONT_SIZE * LINE_HEIGHT * 1}
+                x={FONT_SIZE / 1 - labelWidth}
+                fontStyle={'normal'}
+                align={anchor}
+                text={trimLongString(datum.track, MAX_STRING_LENGTH)}
+              />
             </Group>
           )
         })}
-        {/* <g
-      className="x-axis"
-      transform={`translate(0, ${chartAreaHeight + axisBottomLabelsPadding})`}
-    >
-      {dataset.map((datum, i) => {
-        const anchor = 'end'
-        const inRange = datum.bpm >= yRange[0] && datum.bpm <= yRange[1] ? 1 : 0.1
-        return (
-          <g
-            key={i}
-            transform={`translate(${xScale(datum.track) - fontSize / 2}, 0) rotate(-45)`}
-            fontSize={`${fontSize}px`}
-            opacity={inRange}
-          >
-            <text
-              y={fontSize * lineHeight * 0}
-              x={fontSize * 0}
-              fontWeight="300"
-              textAnchor={anchor}
-            >
-              {trimLongString(datum.artist, maxStringLength)}
-            </text>
-            <text
-              y={fontSize * lineHeight * 1}
-              x={fontSize * 1}
-              fontWeight="500"
-              textAnchor={anchor}
-            >
-              {trimLongString(datum.track, maxStringLength)}
-            </text>
-          </g>
-        )
-      })}
-    </g> */}
       </Group>
     </Layer>
   )
-}
-
-const Shells = React.memo(ShellsLayer)
+})
+// ***************
+// ***********
+// *******
+// ****
+// ***
+// *
+//

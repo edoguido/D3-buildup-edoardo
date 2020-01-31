@@ -15,6 +15,10 @@ export function numberOfDistinctElements(array, category) {
   return singleCategoryArray.filter((v, i) => singleCategoryArray.indexOf(v) === i)
 }
 
+export const dataInRange = (inputDataset, feature, range) => {
+  return inputDataset.filter(d => d[feature] >= range[0] && d[feature] <= range[1])
+}
+
 //
 // trim a string starting from the very next space after specified length
 export const trimLongString = (str, maxLength) => {

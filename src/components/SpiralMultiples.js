@@ -32,9 +32,9 @@ export default function SpiralMultiples(props) {
     })
   }, [])
 
-  const [dataset, updateDataset] = useState(cleanData(dirtyDataset))
+  const dataset = cleanData(dirtyDataset)
 
-  const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
+  // const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
   //
   // convert a discrete scale in a continuous one
   const differentGenres = numberOfDistinctElements(dataset, 'genre')
@@ -180,11 +180,11 @@ export default function SpiralMultiples(props) {
                 transform={`translate(${xScale(datum.track)}, ${yScale(datum.bpm)})`}
               >
                 <line
-                  stroke="black"
-                  opacity="0.25"
-                  x1="0"
+                  stroke={'black'}
+                  opacity={0}
+                  x1={0}
                   y1={chartAreaHeight - yScale(datum.bpm)}
-                  x2="0"
+                  x2={0}
                   y2={spiralInternalRadius}
                 />
                 <SpiralShell
@@ -215,15 +215,15 @@ export default function SpiralMultiples(props) {
                   <text
                     y={fontSize * lineHeight * 0}
                     x={fontSize * 0}
-                    fontWeight="300"
+                    fontWeight={300}
                     textAnchor={anchor}
                   >
                     {trimLongString(datum.artist, maxStringLength)}
                   </text>
                   <text
                     y={fontSize * lineHeight * 1}
-                    x={fontSize * 1}
-                    fontWeight="500"
+                    x={fontSize / 1}
+                    fontWeight={500}
                     textAnchor={anchor}
                   >
                     {trimLongString(datum.track, maxStringLength)}
