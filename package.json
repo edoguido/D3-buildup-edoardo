@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@accurat/tachyons-lite": "^1.0.4",
+    "@vx/responsive": "^0.0.193",
     "d3": "^5.15.0",
     "konva": "^4.1.2",
     "lodash-es": "^4.17.15",

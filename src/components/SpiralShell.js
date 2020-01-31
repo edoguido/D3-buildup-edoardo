@@ -14,7 +14,7 @@ const START_RADIUS = 10
 const GROWING_FACTOR = 16
 const MIN_OPACITY = 0.25
 const MAX_OPACITY = 1
-// const MASK_ANCHOR_FACTOR = 1.2
+const MASK_ANCHOR_FACTOR = 1.2
 
 function SpiralShellComp({
   debug,
@@ -26,6 +26,8 @@ function SpiralShellComp({
   internalRadius,
   modulus,
   linesCount: totalLinesCount,
+  onEnterFn = index => false,
+  onLeaveFn = () => false,
 }) {
   console.log('___RENDERING Shell')
 
@@ -33,32 +35,34 @@ function SpiralShellComp({
   const moduliCount = DOUBLE_PI / modulus
   const modulusLinesCount = totalLinesCount / moduliCount
   const angleUnit = DOUBLE_PI / totalLinesCount
+  const numberOfModuli = Math.floor(linesCount / moduliCount)
+
   const colorScale = d3
     .scaleLinear()
     .domain([1, modulusLinesCount])
     .interpolate(d3.interpolateHcl)
     .range(color.map(c => d3.rgb(c)))
 
-  // const maskPoints = times(moduliCount + 1).map(j => {
-  //   const angle = (DOUBLE_PI / moduliCount) * j
-  //   const bezierControlPointShiftAmount = modulus / 2
-  //   const spiralPoints = spiral(internalRadius + START_RADIUS, angle, GROWING_FACTOR)
-  //   const spiralControlPoints = spiral(
-  //     internalRadius + START_RADIUS,
-  //     angle - bezierControlPointShiftAmount,
-  //     GROWING_FACTOR / MASK_ANCHOR_FACTOR
-  //   )
-  //   return {
-  //     point: {
-  //       x: spiralPoints.x,
-  //       y: spiralPoints.y,
-  //     },
-  //     control: {
-  //       x: spiralControlPoints.x,
-  //       y: spiralControlPoints.y,
-  //     },
-  //   }
-  // })
+  const maskPoints = times(numberOfModuli + 1).map(j => {
+    const angle = (DOUBLE_PI / moduliCount) * j
+    const bezierControlPointShiftAmount = modulus / 2
+    const spiralPoints = spiral(internalRadius + START_RADIUS, angle, GROWING_FACTOR)
+    const spiralControlPoints = spiral(
+      internalRadius + START_RADIUS,
+      angle - bezierControlPointShiftAmount,
+      GROWING_FACTOR / MASK_ANCHOR_FACTOR
+    )
+    return {
+      point: {
+        x: spiralPoints.x,
+        y: spiralPoints.y,
+      },
+      control: {
+        x: spiralControlPoints.x,
+        y: spiralControlPoints.y,
+      },
+    }
+  })
 
   const spiralPointsArray = times(linesCount).map(i => {
     const angle = angleUnit * i
@@ -89,6 +93,8 @@ function SpiralShellComp({
       lineOpacity: lineOpacity,
     }
   })
+  const handleMouseEnter = index => onEnterFn(index)
+  const handleMouseOut = () => onLeaveFn()
 
   // const clipPathId = `clip-${endAngle}`
 
@@ -139,7 +145,7 @@ function SpiralShellComp({
           </>
         )}{' '} */}
         <Circle fill={color[color.length - 1]} x={0} y={0} radius={CIRCLE_RADIUS} />
-        <Group>
+        <Group onMouseEnter={e => handleMouseEnter(e)} onMouseLeave={e => handleMouseOut(e)}>
           {/* <AnimatedDataset
             dataset={spiralPointsArray}
             tag="path"
@@ -166,6 +172,16 @@ function SpiralShellComp({
             }}
             keyFn={(d, i) => i}
           /> */}
+          <Path
+            listening={true}
+            fill={'transparent'}
+            data={`
+              M 0 ${START_RADIUS}
+              ${maskPoints
+                .map(({ point: { x, y }, control: { x: cx, y: cy } }) => `Q ${cx} ${cy} ${x} ${y}`)
+                .join('\n')}
+              `}
+          />
           {spiralPointsArray.map(
             (
               {
@@ -177,7 +193,7 @@ function SpiralShellComp({
               i
             ) => {
               return (
-                <Group key={i}>
+                <Group key={i} listening={false}>
                   <Path
                     // style={{ clipPath: `url(#clip-${endAngle})` }}
                     stroke={colorScale(i % modulusLinesCount)}

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import * as d3 from 'd3'
 import { find } from 'lodash-es'
 import { Range } from 'rc-slider'
-import { Stage, Layer, Group, Line, Text } from 'react-konva'
 import 'rc-slider/assets/index.css'
+import { Stage, Layer, Group, Line, Text } from 'react-konva'
+import { ParentSize } from '@vx/responsive'
 import { SpiralShell } from './SpiralShell'
 import { RangeDisplay } from './RangeDisplay'
 import { YAxis } from './YAxis'
@@ -28,7 +29,6 @@ const dataset = cleanData(dirtyDataset)
 
 // const legendEntries = ['Genre', 'BPM', 'Loudness', 'Song Length']
 //
-// convert a discrete scale in a continuous one
 const differentGenres = numberOfDistinctElements(dataset, 'genre')
 
 //
@@ -40,7 +40,8 @@ const MARGIN = {
   left: 20,
 }
 // TODO use @vx/responsive
-const WIDTH = window.innerWidth - 300
+const CONTROLS_WIDTH = 200
+const WIDTH = window.innerWidth - CONTROLS_WIDTH
 const HEIGHT = 960
 const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right
 const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom
@@ -90,7 +91,7 @@ const COLOR_SCHEME = d3.scaleSequential(d3.interpolateSinebow).domain([0, differ
 // *******
 // ***********
 // ***************
-export default function SpiralMultiples(props) {
+export default function SpiralMultiples({ hoveredFn }) {
   const [debug, setDebug] = useState(false)
   useEffect(() => {
     window.addEventListener('keypress', e => {
@@ -98,7 +99,16 @@ export default function SpiralMultiples(props) {
         setDebug(prevState => !prevState)
       }
     })
-  }, [])
+    window.addEventListener('resize', e =>
+      console.log(e.currentTarget.innerWidth, e.currentTarget.innerHeight)
+    )
+  })
+  function onEnterSpiral(entry) {
+    hoveredFn(entry)
+  }
+  function onLeaveSpiral() {
+    hoveredFn(null)
+  }
 
   //
   // for range selector
@@ -107,7 +117,7 @@ export default function SpiralMultiples(props) {
   const inRange = dataInRange(dataset, 'bpm', yRange)
   const inRangeDifferentGenres = numberOfDistinctElements(inRange, 'genre')
   const isInRange = ({ track, artist }) => find(inRange, { track, artist })
-  // const isInRange = (datun) => inRange.find(d => d.track === datum.track && d.artist === datum.artist)
+  // const isInRange = (datum) => inRange.find(d => d.track === datum.track && d.artist === datum.artist)
 
   return (
     <div className="chart" style={{ display: 'flex', flexDirection: 'row' }}>
@@ -115,7 +125,7 @@ export default function SpiralMultiples(props) {
         className="controls"
         style={{
           margin: '36px 16px',
-          width: '200px',
+          width: CONTROLS_WIDTH,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
@@ -191,7 +201,6 @@ export default function SpiralMultiples(props) {
           />
         </Layer>
 
-        {/* <SpiralGroup debug={debug} isInRange={isInRange} /> */}
         <Layer>
           <Group x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING} y={MARGIN.top}>
             {dataset.map(datum => {
@@ -202,8 +211,6 @@ export default function SpiralMultiples(props) {
                   key={`${datum.artist}-${datum.track}`}
                   x={X_SCALE(datum.track)}
                   y={Y_SCALE(datum.bpm)}
-                  // onMouseOver={e => handleMouseEnter(e.currentTarget.index)}
-                  // onMouseOut={() => handleMouseOut()}
                 >
                   <Line
                     stroke={'black'}
@@ -215,13 +222,10 @@ export default function SpiralMultiples(props) {
             })}
           </Group>
         </Layer>
-        {dataset.map((datum, i) => {
+        {dataset.map(datum => {
           // console.log('___RENDERING SpiralsGroup')
 
           const color = ['#ffffff', COLOR_SCHEME(differentGenres.indexOf(datum.genre))]
-          // const hovering = highlightedIndex !== -1
-          // const isHovered = highlightedIndex === i
-          // const spiralOpacity = !hovering || isHovered ? 1 : 0.25
           const spiralOpacity = isInRange(datum) ? 1 : 0.1
 
           return (
@@ -236,6 +240,8 @@ export default function SpiralMultiples(props) {
               x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING + X_SCALE(datum.track)}
               y={MARGIN.top + Y_SCALE(datum.bpm)}
               opacity={spiralOpacity}
+              onEnterFn={() => onEnterSpiral(datum)}
+              onLeaveFn={() => onLeaveSpiral()}
             />
           )
         })}
@@ -258,16 +264,6 @@ export default function SpiralMultiples(props) {
     </div>
   )
 }
-
-// function SpiralGroup({ debug, onHovered, isInRange }) {
-//   // const [highlightedIndex, setHighlightedIndex] = useState(-1)
-
-//   // const handleMouseEnter = index => setHighlightedIndex(index)
-//   // const handleMouseOut = () => setHighlightedIndex(-1)
-
-//   return (
-//   )
-// }
 
 const XAxis = React.memo(function XAxis({ range }) {
   return (
