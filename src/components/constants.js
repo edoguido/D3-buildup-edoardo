@@ -8,7 +8,7 @@ export const HEIGHT = window.innerHeight - WINDOW_PADDING * 2
 export const MARGIN = {
   top: 120,
   right: 80,
-  bottom: 20,
+  bottom: 60,
   left: 80,
 }
 export const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right
@@ -26,5 +26,5 @@ export const MAX_STRING_LENGTH = 32
 // bottom axis
 export const X_AXIS_LABEL_PADDING = 0
 
-export const CHART_AREA_WIDTH = INNER_WIDTH - Y_AXIS_WIDTH - LEGEND_WIDTH * 2
-export const CHART_AREA_HEIGHT = INNER_HEIGHT - X_AXIS_LABEL_PADDING
+export let CHART_AREA_WIDTH = INNER_WIDTH - Y_AXIS_WIDTH - LEGEND_WIDTH * 2
+export let CHART_AREA_HEIGHT = INNER_HEIGHT - X_AXIS_LABEL_PADDING
