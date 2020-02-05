@@ -4,11 +4,12 @@ import { find } from 'lodash-es'
 import { Range } from 'rc-slider'
 import 'rc-slider/assets/index.css'
 import { Stage, Layer, Group, Line, Text } from 'react-konva'
-import { ParentSize } from '@vx/responsive'
-import { SpiralShell } from './SpiralShell'
-import { RangeDisplay } from './RangeDisplay'
-import { YAxis } from './YAxis'
-import { Legend } from './Legend'
+// import { ParentSize } from '@vx/responsive'
+import { Tooltip } from './CanvasTooltip'
+import { SpiralShell } from './CanvasSpiralShell'
+import { RangeDisplay } from './CanvasRangeDisplay'
+import { YAxis } from './CanvasYAxis'
+import { Legend } from './CanvasLegend'
 import { numberOfDistinctElements, dataInRange, trimLongString } from '../lib/helpers'
 import dirtyDataset from '../data/top50.json'
 
@@ -42,19 +43,13 @@ const MARGIN = {
 // TODO use @vx/responsive
 const CONTROLS_WIDTH = 200
 const WIDTH = window.innerWidth - CONTROLS_WIDTH
-const HEIGHT = 960
+const HEIGHT = window.innerHeight - 100
 const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right
 const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom
 const CHART_PADDING = 40
 const LEGEND_WIDTH = 120
 const Y_AXIS_WIDTH = 60
 
-//
-// graph constants
-// chart
-const SPIRAL_INTERNAL_RADIUS = 10
-const SPIRAL_MAX_ANGLE = d3.max(dataset, d => d.songLength)
-const SPIRAL_LINES_COUNT = 160
 //
 // texts
 const FONT_SIZE = 10
@@ -66,6 +61,14 @@ const X_AXIS_LABEL_PADDING = 24
 
 const CHART_AREA_WIDTH = INNER_WIDTH - Y_AXIS_WIDTH - LEGEND_WIDTH * 2
 const CHART_AREA_HEIGHT = INNER_HEIGHT - X_AXIS_LABEL_PADDING
+
+//
+// graph constants
+// chart
+const SPIRAL_INTERNAL_RADIUS = 10
+const SPIRAL_MAX_ANGLE = d3.max(dataset, d => d.songLength)
+const SPIRAL_LINES_COUNT = 160
+//
 
 //
 // scales
@@ -91,8 +94,10 @@ const COLOR_SCHEME = d3.scaleSequential(d3.interpolateSinebow).domain([0, differ
 // *******
 // ***********
 // ***************
-export default function SpiralMultiples({ hoveredFn }) {
+export default function SpiralMultiples() {
+  const [hovered, setHovered] = useState(null)
   const [debug, setDebug] = useState(false)
+
   useEffect(() => {
     window.addEventListener('keypress', e => {
       if (e.code === 'KeyD' && e.altKey === true && e.repeat === false && e.isComposing === false) {
@@ -102,12 +107,12 @@ export default function SpiralMultiples({ hoveredFn }) {
     window.addEventListener('resize', e =>
       console.log(e.currentTarget.innerWidth, e.currentTarget.innerHeight)
     )
-  })
+  }, [])
   function onEnterSpiral(entry) {
-    hoveredFn(entry)
+    setHovered(entry)
   }
   function onLeaveSpiral() {
-    hoveredFn(null)
+    setHovered(null)
   }
 
   //
@@ -120,148 +125,169 @@ export default function SpiralMultiples({ hoveredFn }) {
   // const isInRange = (datum) => inRange.find(d => d.track === datum.track && d.artist === datum.artist)
 
   return (
-    <div className="chart" style={{ display: 'flex', flexDirection: 'row' }}>
-      <div
-        className="controls"
-        style={{
-          margin: '36px 16px',
-          width: CONTROLS_WIDTH,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-        }}
-      >
+    <>
+      <span>D3 Exercise — </span>
+      <span>
+        Data:
+        <a
+          href="https://www.kaggle.com/leonardopena/top50spotify2019"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Top 50 Spotify Songs - 2019
+        </a>
+      </span>
+      <h2>Responsive spiral Chart with React and D3</h2>
+
+      <Tooltip hovered={hovered} />
+      <div className="chart" style={{ display: 'flex', flexDirection: 'row' }}>
         <div
+          className="controls"
           style={{
+            margin: '36px 16px',
+            width: CONTROLS_WIDTH,
             display: 'flex',
-            flexDirection: 'row',
-            marginBottom: '36px',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
           }}
         >
           <div
             style={{
-              height: '120px',
-              width: '32px',
-              margin: '12px 24px',
               display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: '.8em',
+              flexDirection: 'row',
+              marginBottom: '36px',
             }}
           >
-            <span>{yRange[1]}</span>
-            <span> | </span>
-            <span>{yRange[0]}</span>
+            <div
+              style={{
+                height: '120px',
+                width: '32px',
+                margin: '12px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '.8em',
+              }}
+            >
+              <span>{yRange[1]}</span>
+              <span> | </span>
+              <span>{yRange[0]}</span>
+            </div>
+            <div style={{ height: '240px', margin: '12px 32px 0px 0px' }}>
+              <Range
+                min={datasetYScaleMin}
+                max={datasetYScaleMax}
+                defaultValue={[datasetYScaleMin, datasetYScaleMax]}
+                step={1}
+                allowCross={false}
+                pushable={10}
+                vertical={true}
+                reverse={false}
+                onChange={range => setYRange(range)}
+              />
+            </div>
           </div>
-          <div style={{ height: '240px', margin: '12px 32px 0px 0px' }}>
-            <Range
-              min={datasetYScaleMin}
-              max={datasetYScaleMax}
-              defaultValue={[datasetYScaleMin, datasetYScaleMax]}
-              step={1}
-              allowCross={false}
-              pushable={10}
-              vertical={true}
-              reverse={false}
-              onChange={range => setYRange(range)}
+          <div>
+            <span className="dataset-value">{inRange.length}</span> elements selected
+          </div>
+          <div>with a rhythm between </div>
+          <div>
+            <span className="dataset-value">{yRange[0]}</span> and{' '}
+            <span className="dataset-value">{yRange[1]}</span> BPM
+          </div>
+        </div>
+        <Stage width={WIDTH} height={HEIGHT}>
+          <Layer>
+            <Legend
+              title={'Genres'}
+              entries={differentGenres}
+              entriesInRange={inRangeDifferentGenres}
+              fontSize={FONT_SIZE}
+              color={COLOR_SCHEME}
+              x={INNER_WIDTH - LEGEND_WIDTH}
+              y={MARGIN.top}
             />
-          </div>
-        </div>
-        <div>
-          <span className="dataset-value">{inRange.length}</span> elements selected
-        </div>
-        <div>with a rhythm between </div>
-        <div>
-          <span className="dataset-value">{yRange[0]}</span> and{' '}
-          <span className="dataset-value">{yRange[1]}</span> BPM
-        </div>
+
+            <YAxis
+              title={'Beats Per Minute'}
+              scale={Y_SCALE}
+              width={Y_AXIS_WIDTH}
+              svgHeight={CHART_AREA_HEIGHT}
+              margin={MARGIN}
+              fontSize={FONT_SIZE}
+              x={MARGIN.left + Y_AXIS_WIDTH}
+              y={MARGIN.top}
+            />
+          </Layer>
+
+          <Layer>
+            <Group x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING} y={MARGIN.top}>
+              {dataset.map(datum => {
+                // console.log('___RENDERING SpiralsGroup')
+
+                return (
+                  <Group
+                    key={`${datum.artist}-${datum.track}`}
+                    x={X_SCALE(datum.track)}
+                    y={Y_SCALE(datum.bpm)}
+                  >
+                    <Line
+                      stroke={'black'}
+                      opacity={0.25}
+                      points={[
+                        0,
+                        CHART_AREA_HEIGHT - Y_SCALE(datum.bpm),
+                        0,
+                        SPIRAL_INTERNAL_RADIUS,
+                      ]}
+                    />
+                  </Group>
+                )
+              })}
+            </Group>
+          </Layer>
+          {dataset.map(datum => {
+            // console.log('___RENDERING SpiralsGroup')
+
+            const color = ['#ffffff', COLOR_SCHEME(differentGenres.indexOf(datum.genre))]
+            const spiralOpacity = isInRange(datum) ? 1 : 0.1
+
+            return (
+              <SpiralShell
+                key={`${datum.track}-${datum.artist}`}
+                debug={debug}
+                color={color}
+                angle={(datum.songLength / SPIRAL_MAX_ANGLE) * (2 * Math.PI)}
+                internalRadius={SPIRAL_INTERNAL_RADIUS}
+                modulus={Math.PI / 6}
+                linesCount={SPIRAL_LINES_COUNT}
+                x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING + X_SCALE(datum.track)}
+                y={MARGIN.top + Y_SCALE(datum.bpm)}
+                opacity={spiralOpacity}
+                onEnterFn={() => onEnterSpiral(datum)}
+                onLeaveFn={() => onLeaveSpiral()}
+              />
+            )
+          })}
+
+          <XAxis range={yRange} />
+
+          <Layer>
+            <Group x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING} y={MARGIN.top}>
+              <RangeDisplay
+                x={-CHART_PADDING}
+                y={0}
+                width={CHART_AREA_WIDTH}
+                height={CHART_AREA_HEIGHT}
+                rangeStart={Y_SCALE(yRange[1])}
+                rangeEnd={Y_SCALE(yRange[0])}
+              />
+            </Group>
+          </Layer>
+        </Stage>
       </div>
-      <Stage width={WIDTH} height={HEIGHT}>
-        <Layer>
-          <Legend
-            title={'Genres'}
-            entries={differentGenres}
-            entriesInRange={inRangeDifferentGenres}
-            fontSize={FONT_SIZE}
-            color={COLOR_SCHEME}
-            x={INNER_WIDTH - LEGEND_WIDTH}
-            y={MARGIN.top}
-          />
-
-          <YAxis
-            title={'Beats Per Minute'}
-            scale={Y_SCALE}
-            width={Y_AXIS_WIDTH}
-            svgHeight={CHART_AREA_HEIGHT}
-            margin={MARGIN}
-            fontSize={FONT_SIZE}
-            x={MARGIN.left + Y_AXIS_WIDTH}
-            y={MARGIN.top}
-          />
-        </Layer>
-
-        <Layer>
-          <Group x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING} y={MARGIN.top}>
-            {dataset.map(datum => {
-              // console.log('___RENDERING SpiralsGroup')
-
-              return (
-                <Group
-                  key={`${datum.artist}-${datum.track}`}
-                  x={X_SCALE(datum.track)}
-                  y={Y_SCALE(datum.bpm)}
-                >
-                  <Line
-                    stroke={'black'}
-                    opacity={0.25}
-                    points={[0, CHART_AREA_HEIGHT - Y_SCALE(datum.bpm), 0, SPIRAL_INTERNAL_RADIUS]}
-                  />
-                </Group>
-              )
-            })}
-          </Group>
-        </Layer>
-        {dataset.map(datum => {
-          // console.log('___RENDERING SpiralsGroup')
-
-          const color = ['#ffffff', COLOR_SCHEME(differentGenres.indexOf(datum.genre))]
-          const spiralOpacity = isInRange(datum) ? 1 : 0.1
-
-          return (
-            <SpiralShell
-              key={`${datum.track}-${datum.artist}`}
-              debug={debug}
-              color={color}
-              angle={(datum.songLength / SPIRAL_MAX_ANGLE) * (2 * Math.PI)}
-              internalRadius={SPIRAL_INTERNAL_RADIUS}
-              modulus={Math.PI / 6}
-              linesCount={SPIRAL_LINES_COUNT}
-              x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING + X_SCALE(datum.track)}
-              y={MARGIN.top + Y_SCALE(datum.bpm)}
-              opacity={spiralOpacity}
-              onEnterFn={() => onEnterSpiral(datum)}
-              onLeaveFn={() => onLeaveSpiral()}
-            />
-          )
-        })}
-
-        <XAxis range={yRange} />
-
-        <Layer>
-          <Group x={MARGIN.left + Y_AXIS_WIDTH + CHART_PADDING} y={MARGIN.top}>
-            <RangeDisplay
-              x={-CHART_PADDING}
-              y={0}
-              width={CHART_AREA_WIDTH}
-              height={CHART_AREA_HEIGHT}
-              rangeStart={Y_SCALE(yRange[1])}
-              rangeEnd={Y_SCALE(yRange[0])}
-            />
-          </Group>
-        </Layer>
-      </Stage>
-    </div>
+    </>
   )
 }
 
